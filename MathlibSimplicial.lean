@@ -1,0 +1,17 @@
+-- Root module: importing this file builds the whole library.
+-- Keep the list sorted and add every new file here.
+import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Clique
+import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Cone
+import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Faces
+import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Basic
+import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Chains
+import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Cochains
+import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Computations
+import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.EulerPoincare
+import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.OrderComplex
+import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Simplex
+import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.SimplicialMap
+import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.ToSSet
+import MathlibSimplicial.TDA.NerveLemma
+import MathlibSimplicial.TDA.Persistence
+import MathlibSimplicial.TDA.VietorisRips
