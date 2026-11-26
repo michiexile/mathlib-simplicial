@@ -4,12 +4,15 @@ module
 
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Clique
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Cone
+public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Dimension
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Faces
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Basic
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Chains
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Cochains
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Computations
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.EulerPoincare
+public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Join
+public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Link
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.OrderComplex
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Simplex
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.SimplicialMap

@@ -48,7 +48,10 @@ MathlibSimplicial/
   AlgebraicTopology/SimplicialComplex/
     Faces.lean           vertices, facets, faces by dimension, f-vector, Euler characteristic
     Simplex.lean         full simplex, boundary, skeleta
-    Cone.lean            cones (stars, links, joins to follow)
+    Dimension.lean       dimension, valued in WithBot ℕ∞
+    Cone.lean            cones
+    Link.lean            closed stars and links
+    Join.lean            joins
     SimplicialMap.lean   simplicial maps and the category of complexes
     Clique.lean          clique (flag) complex of a graph
     OrderComplex.lean    order complex of a poset, face poset
@@ -69,10 +72,10 @@ Files marked "Status: planned" in their header are placeholders that fix where m
 
 ## Roadmap
 
-1. **Basic API** (in progress). Done: faces by dimension, f-vector, vertices, facets
-   (`Faces.lean`); full simplex, boundary, skeleta (`Simplex.lean`); simplicial maps and the
-   category of complexes (`SimplicialMap.lean`); cones (`Cone.lean`). Still to come: links,
-   stars, joins, dimension (from Cunningham–Zach–Friedl, see below).
+1. **Basic API** (done). Faces by dimension, f-vector, vertices, facets (`Faces.lean`); full
+   simplex, boundary, skeleta (`Simplex.lean`); dimension (`Dimension.lean`); simplicial maps
+   and the category of complexes (`SimplicialMap.lean`); cones (`Cone.lean`); closed stars and
+   links (`Link.lean`); joins (`Join.lean`).
 2. **Clique and order complexes.** The standard sources of complexes in combinatorics and TDA.
 3. **Bridge to simplicial sets.** `K.toSSet` as a subcomplex of the nerve of the vertex order,
    with nondegenerate simplices matching faces. Homology of `K` is then Mathlib's homology of
