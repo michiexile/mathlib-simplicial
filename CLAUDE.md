@@ -24,6 +24,9 @@ Conventions for working in this repository. See `README.md` for the roadmap and 
     theorems, following https://leanprover-community.github.io/contribute/naming.html.
   - Every file has a copyright header and a `/-! ... -/` module docstring with a
     "Main declarations" list; every `def` and `structure` has a docstring.
+  - Every file uses Lean's module system: `module` after the header, `public import`, and
+    `@[expose] public section` around definitions whose bodies other files (or `decide`) must
+    unfold. Mathlib is written this way, and Lake warns otherwise.
   - Lines at most 100 characters. `autoImplicit` is off (set in `lakefile.toml`).
 - Build the API on `PreAbstractSimplicialComplex` (vertex set may be a proper subset of `ι`), and
   derive `AbstractSimplicialComplex` results through `toPreAbstractSimplicialComplex`. (Proposed

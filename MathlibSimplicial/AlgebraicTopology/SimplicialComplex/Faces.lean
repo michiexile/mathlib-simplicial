@@ -3,9 +3,11 @@ Copyright (c) 2026 Mikael Vejdemo-Johansson. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Mikael Vejdemo-Johansson
 -/
-import Mathlib.AlgebraicTopology.SimplicialComplex.Basic
-import Mathlib.Algebra.BigOperators.Group.Finset.Basic
-import Mathlib.Data.Fintype.Powerset
+module
+
+public import Mathlib.AlgebraicTopology.SimplicialComplex.Basic
+public import Mathlib.Algebra.BigOperators.Group.Finset.Basic
+public import Mathlib.Data.Fintype.Powerset
 
 /-!
 # Faces, vertices, facets and the f-vector of an abstract simplicial complex
@@ -35,6 +37,8 @@ vertices.
 * `PreAbstractSimplicialComplex.fVector K n`: the number of `n`-dimensional faces.
 * `PreAbstractSimplicialComplex.eulerChar K`: the alternating sum `∑ (-1)ⁿ fₙ`.
 -/
+
+@[expose] public section
 
 open Finset
 
@@ -127,7 +131,8 @@ theorem mem_finsetFacesOfDim {n : ℕ} : s ∈ K.finsetFacesOfDim n ↔ s ∈ K 
   simp [finsetFacesOfDim]
 
 @[simp, norm_cast]
-theorem coe_finsetFacesOfDim (n : ℕ) : (K.finsetFacesOfDim n : Set (Finset ι)) = K.facesOfDim n := by
+theorem coe_finsetFacesOfDim (n : ℕ) :
+    (K.finsetFacesOfDim n : Set (Finset ι)) = K.facesOfDim n := by
   ext s
   simp
 
@@ -135,7 +140,8 @@ theorem coe_finsetFacesOfDim (n : ℕ) : (K.finsetFacesOfDim n : Set (Finset ι)
 def fVector (n : ℕ) : ℕ := (K.finsetFacesOfDim n).card
 
 /-- There are no faces of dimension `n` once `n + 1` exceeds the number of available vertices. -/
-theorem finsetFacesOfDim_eq_empty {n : ℕ} (hn : Fintype.card ι ≤ n) : K.finsetFacesOfDim n = ∅ := by
+theorem finsetFacesOfDim_eq_empty {n : ℕ} (hn : Fintype.card ι ≤ n) :
+    K.finsetFacesOfDim n = ∅ := by
   ext s
   simp only [mem_finsetFacesOfDim, notMem_empty, iff_false, not_and]
   intro _ hs

@@ -1,17 +1,19 @@
 -- Root module: importing this file builds the whole library.
 -- Keep the list sorted and add every new file here.
-import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Clique
-import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Cone
-import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Faces
-import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Basic
-import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Chains
-import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Cochains
-import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Computations
-import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.EulerPoincare
-import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.OrderComplex
-import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Simplex
-import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.SimplicialMap
-import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.ToSSet
-import MathlibSimplicial.TDA.NerveLemma
-import MathlibSimplicial.TDA.Persistence
-import MathlibSimplicial.TDA.VietorisRips
+module
+
+public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Clique
+public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Cone
+public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Faces
+public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Basic
+public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Chains
+public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Cochains
+public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Computations
+public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.EulerPoincare
+public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.OrderComplex
+public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Simplex
+public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.SimplicialMap
+public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.ToSSet
+public import MathlibSimplicial.TDA.NerveLemma
+public import MathlibSimplicial.TDA.Persistence
+public import MathlibSimplicial.TDA.VietorisRips

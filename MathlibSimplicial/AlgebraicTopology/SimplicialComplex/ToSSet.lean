@@ -3,7 +3,9 @@ Copyright (c) 2026 Mikael Vejdemo-Johansson. All rights reserved.
 Released under MIT license as described in the file LICENSE.
 Authors: Mikael Vejdemo-Johansson
 -/
-import Mathlib.AlgebraicTopology.SimplicialComplex.Basic
+module
+
+public import Mathlib.AlgebraicTopology.SimplicialComplex.Basic
 
 /-!
 # From simplicial complexes to simplicial sets
