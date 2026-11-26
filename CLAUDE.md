@@ -22,8 +22,9 @@ Conventions for working in this repository. See `README.md` for the roadmap and 
     project namespace.
   - Naming: `UpperCamelCase` for types and structures, `lowerCamelCase` for defs, `snake_case` for
     theorems, following https://leanprover-community.github.io/contribute/naming.html.
-  - Every file has a copyright header and a `/-! ... -/` module docstring with a
-    "Main declarations" list; every `def` and `structure` has a docstring.
+  - Every file has a Mathlib-style copyright header ("Released under Apache 2.0 license as
+    described in the file LICENSE."; the repo is Apache 2.0, like Mathlib) and a `/-! ... -/`
+    module docstring with a "Main declarations" list; every `def` and `structure` has a docstring.
   - Every file uses Lean's module system: `module` after the header, `public import`, and
     `@[expose] public section` around definitions whose bodies other files (or `decide`) must
     unfold. Mathlib is written this way, and Lake warns otherwise.

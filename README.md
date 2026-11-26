@@ -105,4 +105,5 @@ Ported files keep the original copyright notice (Apache 2.0) and say where they 
 
 ## License
 
-MIT, see `LICENSE`. Code ported from not-gary/pachner remains under Apache 2.0.
+Apache 2.0, see `LICENSE`: the same license as Mathlib, so files can be upstreamed unchanged.
+Code ported from not-gary/pachner is also Apache 2.0 and keeps its original copyright notice.

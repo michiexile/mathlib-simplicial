@@ -7,9 +7,6 @@ pp.unicode.fun = true      # print `fun x ↦ y` instead of `fun x => y`
 autoImplicit = false       # Mathlib style: every variable must be declared
 relaxedAutoImplicit = false
 weak.linter.mathlibStandardSet = true  # enable Mathlib's own style linters
-# The header linter insists on Mathlib's Apache-2.0 copyright line; this repo is MIT for now.
-# Re-enable if the repo is relicensed to Apache 2.0.
-weak.linter.style.header = false
 
 [[require]]
 name = "mathlib"
