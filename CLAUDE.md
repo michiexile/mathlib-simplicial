@@ -29,8 +29,8 @@ Conventions for working in this repository. See `README.md` for the roadmap and 
     unfold. Mathlib is written this way, and Lake warns otherwise.
   - Lines at most 100 characters. `autoImplicit` is off (set in `lakefile.toml`).
 - Build the API on `PreAbstractSimplicialComplex` (vertex set may be a proper subset of `ι`), and
-  derive `AbstractSimplicialComplex` results through `toPreAbstractSimplicialComplex`. (Proposed
-  2026-11-26; awaiting Mikael's confirmation.)
+  derive `AbstractSimplicialComplex` results through `toPreAbstractSimplicialComplex`. (Decided by
+  Mikael, 2026-11-26.)
 - Dimension convention: a face `s` has dimension `s.card - 1`.
 - New files must be added to `MathlibSimplicial.lean` (kept sorted).
 - No `sorry` on `main`: CI builds with `--wfail`, so any warning fails the build.
