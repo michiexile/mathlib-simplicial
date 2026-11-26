@@ -40,8 +40,10 @@ Conventions for working in this repository. See `README.md` for the roadmap and 
 
 - Port, don't depend: the library is on Lean 4.21 and defines a clashing `AbstractSimplicialComplex`.
   Its `AbstractSimplicialComplex` corresponds to Mathlib's `PreAbstractSimplicialComplex`.
-- Keep the original copyright header (Apache 2.0, Cunningham, Zach, Friedl) on ported files and
-  add a line naming the source file and commit (`df9ad40`).
+- Copied code keeps the original copyright header (Apache 2.0, Cunningham, Zach, Friedl) plus a
+  line naming the source file and commit (`df9ad40`). Where we restate a CZF definition with new
+  proofs (the usual case so far, since their proofs are long tactic scripts), use our own header
+  and cite the CZF file in the module docstring.
 - Adapt to current Mathlib API and style while porting (e.g. `s ∈ K` via `SetLike` instead of
   `s ∈ K.faces`).
 
