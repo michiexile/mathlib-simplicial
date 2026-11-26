@@ -1,0 +1,23 @@
+# Build the library on every push and pull request.
+#
+# `leanprover/lean-action` installs the toolchain named in `lean-toolchain`, downloads
+# Mathlib's prebuilt `.olean` cache (`lake exe cache get`), and runs `lake build`.
+# The cache means CI compiles only this repository's files, not all of Mathlib.
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: lake build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1
+        with:
+          # Fail the build on any warning (e.g. `sorry`, unused variables, linter hits).
+          build-args: "--wfail"
