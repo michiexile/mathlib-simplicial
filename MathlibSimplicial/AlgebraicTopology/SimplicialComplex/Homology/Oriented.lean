@@ -105,4 +105,40 @@ noncomputable def homologyIsoOriented (n : ℕ) :
     K.homology (ModuleCat.of R R) n ≅ (K.orientedChainComplex R).homology n :=
   K.homologyIsoNormalized _ n ≪≫ HomologicalComplex.homologyMapIso (K.orientedIso R) n
 
+/-! ### Boundaries and augmentation as linear maps -/
+
+/-- The boundary map `Cₙ₊₁(K) → Cₙ(K)` of oriented chains, as a linear map. -/
+noncomputable abbrev orientedBoundary (n : ℕ) :
+    (K.facesOfDim (n + 1) →₀ R) →ₗ[R] (K.facesOfDim n →₀ R) :=
+  ((K.orientedChainComplex R).d (n + 1) n).hom
+
+theorem orientedBoundary_single {n : ℕ} (t : K.facesOfDim (n + 1)) (r : R) :
+    K.orientedBoundary R n (Finsupp.single t r) =
+      ∑ i : Fin (n + 2), (-1 : ℤ) ^ i.val • Finsupp.single (faceErase t i) r :=
+  K.orientedChainComplex_d_single R t r
+
+@[simp]
+theorem orientedBoundary_orientedBoundary (n : ℕ) (c : K.facesOfDim (n + 2) →₀ R) :
+    K.orientedBoundary R n (K.orientedBoundary R (n + 1) c) = 0 := by
+  have := congrArg (fun f ↦ f.hom c) ((K.orientedChainComplex R).d_comp_d (n + 2) (n + 1) n)
+  exact this
+
+/-- The augmentation `C₀(K) → R`, sending each vertex to `1`: the sum of the coefficients. -/
+noncomputable def augmentation : (K.facesOfDim 0 →₀ R) →ₗ[R] R :=
+  Finsupp.linearCombination R fun _ ↦ 1
+
+omit [LinearOrder ι] in
+@[simp]
+theorem augmentation_single (t : K.facesOfDim 0) (r : R) :
+    K.augmentation R (Finsupp.single t r) = r := by
+  simp [augmentation]
+
+@[simp]
+theorem augmentation_orientedBoundary (c : K.facesOfDim 1 →₀ R) :
+    K.augmentation R (K.orientedBoundary R 0 c) = 0 := by
+  induction c using Finsupp.induction_linear with
+  | zero => simp
+  | add c c' hc hc' => simp [hc, hc']
+  | single t r => simp [orientedBoundary_single, Fin.sum_univ_two]
+
 end PreAbstractSimplicialComplex
