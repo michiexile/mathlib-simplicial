@@ -198,3 +198,33 @@ review after the fact. To reverse one, say so and it will be redone.
   namespace for now, although interleavings make sense for any persistence modules. They should
   move to a general namespace when upstreamed, once Mathlib has persistence modules.
 - Not done here: the interleaving distance and stability; the barcode decomposition.
+
+### Step 6b: oriented chains and the acyclic carrier theorem (Claude)
+- Branch `claude/step6-acyclic-carriers`, stacked on step 6a.
+- **Why this detour before the nerve lemma:** Mathlib has no spectral sequences or Mayer–Vietoris
+  machinery for simplicial complexes that would give the nerve lemma directly. The classical
+  elementary proof uses acyclic carriers (and barycentric subdivision). The same tool also
+  removes two limitations recorded earlier: cone acyclicity needed a minimal apex, and
+  functoriality was only for inclusions/monotone maps. So it is the best next investment.
+- **Oriented chains as `Finsupp`** (`K.facesOfDim n →₀ R`, over a ring `R`, in
+  `ModuleCat R`), defined by transporting the normalized complex along degreewise isomorphisms.
+  - **Alternative:** work categorically with the normalized complex (coproducts in a general
+    category `C`) and phrase "carried by" as factoring through subcomplex inclusions, lifting
+    via projectivity of `R`.
+  - **Why:** carriers are about supports of individual chains, which `Finsupp.supported` models
+    directly with a large existing API. The general-`C` route needs projectivity and much more
+    degree bookkeeping. The `Finsupp` complex is also the natural basis for later explicit
+    computations. Results are stated over `ModuleCat R` for a ring `R`, which covers fields
+    (TDA) and `ℤ`.
+- **Acyclicity is concrete** (`IsAcyclicIn R L M`: a vertex exists, and every reduced cycle of
+  `L` supported on `M` bounds a chain supported on `M`), relative to an ambient `L` so that
+  carriers never have to move chains between different complexes. For `M ≤ L` it agrees with
+  vanishing reduced homology of `M`; both directions are proved.
+- **The inductive constructions** carry their invariants in subtypes
+  (`{f // IsGood n f}`), defined by structural recursion. Mathlib's `ChainComplex.mkHom` and
+  `Homotopy.mkInductive` don't allow extra invariants in the recursion, so they could not be
+  used. The homotopy is assembled with `Homotopy.nullHomotopy'`.
+- **Cones with any apex are acyclic**, via the carrier `s ↦ Δ(s ∪ {v})`, which carries both the
+  identity and the collapse to the apex. Only full simplices use the older, order-dependent
+  extra-degeneracy result. This supersedes the "apex must be minimal" limitation for
+  coefficients in `ModuleCat R`.
