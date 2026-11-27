@@ -207,6 +207,18 @@ noncomputable def homologyIsoBarycentricSubdivision (n : ℕ) :
     (fun _ _ _ _ hT ↦ simplex_mono (Finset.sup_le fun x hx ↦ (mem_simplex.1 (hT.2.1 x hx)).2))
     (fun _ _ _ _ ht ↦ barycentricSubdivision_mono (simplex_mono (mem_simplex.1 ht).2)) n
 
+variable {K} in
+/-- The isomorphism `H(K) ≅ H(sd K)` is natural for inclusions. -/
+theorem homologyIsoBarycentricSubdivision_naturality {K' : PreAbstractSimplicialComplex ι}
+    (h : K ≤ K') (n : ℕ) :
+    (K.homologyIsoBarycentricSubdivision R n).hom ≫
+        PreAbstractSimplicialComplex.homologyMap (ModuleCat.of R R)
+          (barycentricSubdivision_mono h) n =
+      PreAbstractSimplicialComplex.homologyMap (ModuleCat.of R R) h n ≫
+        (K'.homologyIsoBarycentricSubdivision R n).hom :=
+  AcyclicCarrier.homologyIso_naturality R h (barycentricSubdivision_mono h)
+    ((toSubdivisionCarrier K' R).restrict R h) (fun _ _ ↦ le_rfl) (fun _ _ ↦ le_rfl) n
+
 /-- The barycentric subdivision of an acyclic complex is acyclic. -/
 theorem isAcyclicIn_self_barycentricSubdivision (hK : IsAcyclicIn R K K) :
     IsAcyclicIn R K.barycentricSubdivision K.barycentricSubdivision :=
