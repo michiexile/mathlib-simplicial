@@ -9,6 +9,7 @@ public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Dimension
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Faces
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Acyclic
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.AcyclicCarrier
+public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.AcyclicSubcomplex
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Basic
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Chains
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Cochains
