@@ -108,3 +108,30 @@ review after the fact. To reverse one, say so and it will be redone.
     or cochains defined directly as functions on faces.
   - **Why:** it works for any preadditive coefficient category and is functorial for free. The
     concrete "functions on faces" description belongs with the step 5 comparison.
+
+### Step 4: first computations (Claude)
+- Branch `claude/step4-computations`, stacked on step 3.
+- **Acyclicity through extra degeneracies.** Mathlib proves that an augmented simplicial object
+  with an extra degeneracy has a contractible alternating face map complex. A new file,
+  `SimplicialSet/Homology/ExtraDegeneracy.lean`, turns that into `C•(X; R) ≃ₕ R[0]` for any
+  simplicial set with an extra degeneracy. For a cone, the extra degeneracy puts the apex in
+  front of each simplex.
+  - **Alternatives:** a chain homotopy written by hand on the concrete chain complex (step 5); or
+    a homotopy `Δ[1] ⊗ K.toSSet → K.toSSet` with Mathlib's homotopy invariance.
+  - **Why:** the extra degeneracy is a few one-line simplicial identities, and Mathlib already
+    supplies the chain homotopy.
+- **Limitation: the apex must come first in the order on `ι`.** Putting `v` in front of a
+  monotone list only gives a monotone list when `v` is minimal. This covers simplices
+  (apex `s.min'`) and `L.cone`, with `Option ι` ordered as `WithBot ι`. It does not cover a
+  cone point in the middle of the order. Removing the restriction needs `K.toSSet` to be
+  independent of the order up to homology. That is planned together with simplicial-map
+  functoriality (see the step 3 entry).
+- **`H₀`** is identified with `⨁ R` over the connected components of `K.vertexGraph`, the
+  1-skeleton graph induced on `K.vertices`. Using the induced graph, not `K.graph` on all of `ι`,
+  keeps non-vertices of a `PreAbstractSimplicialComplex` from showing up as extra components.
+- **Vanishing above the dimension** comes from Mathlib's `HasDimensionLT` and the normalized
+  chain complex. It is stated both with a bound on the number of vertices per face and with
+  `dim`.
+- **Deferred within step 4:** `H(∂Δⁿ) ≅ H(Sⁿ⁻¹)`. It needs the long exact sequence of the pair
+  `(Δⁿ, ∂Δⁿ)` and the relative homology of that pair. Mathlib has relative chain complexes for
+  simplicial-set pairs; the plan is to do this next, as a separate PR.

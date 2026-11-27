@@ -86,6 +86,15 @@ theorem none_mem_vertices_cone : none ∈ K.cone.vertices :=
 theorem insertNone_mem_cone (hs : s ∈ K) : insertNone s ∈ K.cone :=
   ⟨insertNone_nonempty, .inr (by rwa [eraseNone_insertNone])⟩
 
+/-- Adding the apex to a face of the cone gives a face of the cone. -/
+theorem insert_none_mem_cone [DecidableEq ι] (ht : t ∈ K.cone) : insert none t ∈ K.cone := by
+  refine ⟨insert_nonempty _ _, ?_⟩
+  have : eraseNone (insert none t) = eraseNone t := by
+    ext
+    simp
+  rw [this]
+  exact ht.2
+
 /-- A copy of a finset of old vertices is a face of the cone exactly when it is a face of `K`. -/
 @[simp]
 theorem map_some_mem_cone_iff : s.map Function.Embedding.some ∈ K.cone ↔ s ∈ K := by
