@@ -27,10 +27,14 @@ face of `K`. If `L` and `K` have the same `n`-faces, this map is an isomorphism 
 vertices, the inclusion is an isomorphism on `Hₖ` (`isIso_homologyMap_of_faces`). This is
 the "homology only sees the `(k+1)`-skeleton" principle.
 
-## Still planned (roadmap step 5)
+## The boundary formula
 
-The explicit boundary formula `∂[v₀,…,vₙ] = ∑ (-1)ⁱ [v₀,…,v̂ᵢ,…,vₙ]` in terms of faces, and a
-version with coefficients in a module, for linear-algebra computations.
+`faceChain R t` is the summand of `Nₙ(K; R)` for an `n`-face `t`. The differential is the
+textbook alternating sum over the faces of `t` (`faceChain_d`):
+
+  `∂[v₀,…,vₙ₊₁] = ∑ᵢ (-1)ⁱ [v₀,…,v̂ᵢ,…,vₙ₊₁]`,
+
+with the vertices listed in increasing order (`Finset.orderEmbOfFin`).
 
 ## Main declarations
 
@@ -38,6 +42,8 @@ version with coefficients in a module, for linear-algebra computations.
   `≤ k + 1` is an isomorphism on `Hₖ`.
 * `PreAbstractSimplicialComplex.normalizedChainComplex`,
   `PreAbstractSimplicialComplex.normalizedChainComplexXIso`.
+* `PreAbstractSimplicialComplex.faceChain`, `PreAbstractSimplicialComplex.faceChain_d`: the
+  boundary formula.
 * `PreAbstractSimplicialComplex.homologyIsoNormalized`: homology computed by normalized chains.
 * `PreAbstractSimplicialComplex.isIso_homologyMap_of_faces`.
 -/
@@ -82,6 +88,40 @@ noncomputable def normalizedChainComplexXIso (n : ℕ) :
     (K.normalizedChainComplex R).X n ≅ ∐ fun _ : K.facesOfDim n ↦ R :=
   (K.toSSet.isColimitCofanNormalizedChainComplex R n).coconePointUniqueUpToIso
     (coproductIsCoproduct _) ≪≫ (Sigma.reindex (K.nonDegenerateEquiv n).symm (fun _ ↦ R)).symm
+
+/-- The `n`-simplex of `K.toSSet` listing the vertices of an `n`-face in increasing order. -/
+noncomputable def simplexOfFace {n : ℕ} (t : K.facesOfDim n) : K.toSSet _⦋n⦌ :=
+  ((K.nonDegenerateEquiv n).symm t).1
+
+/-- The summand of the normalized `n`-chains corresponding to an `n`-face. -/
+noncomputable def faceChain {n : ℕ} (t : K.facesOfDim n) :
+    R ⟶ (K.normalizedChainComplex R).X n :=
+  K.toSSet.ιNormalizedChainComplex (K.simplexOfFace t)
+
+variable {K} in
+/-- Removing the `i`-th vertex (in increasing order) from an `(n+1)`-face gives an `n`-face. -/
+noncomputable def faceErase {n : ℕ} (t : K.facesOfDim (n + 1)) (i : Fin (n + 2)) :
+    K.facesOfDim n :=
+  ⟨t.1.erase (t.1.orderEmbOfFin t.2.2 i), K.mem_of_subset t.2.1 (erase_subset _ _)
+    (by rw [← card_pos, card_erase_of_mem (orderEmbOfFin_mem _ _ _), t.2.2]; omega),
+    by rw [card_erase_of_mem (orderEmbOfFin_mem _ _ _), t.2.2]; rfl⟩
+
+theorem δ_simplexOfFace {n : ℕ} (t : K.facesOfDim (n + 1)) (i : Fin (n + 2)) :
+    K.toSSet.δ i (K.simplexOfFace t) = K.simplexOfFace (faceErase t i) := by
+  apply Subtype.ext
+  apply nerve.ext_of_isThin
+  refine (orderEmbOfFin_unique (faceErase t i).2.2 (f := fun j ↦ t.1.orderEmbOfFin t.2.2
+    (i.succAbove j)) (fun j ↦ ?_) ?_).trans rfl
+  · exact mem_erase.2 ⟨fun h ↦ Fin.succAbove_ne i j ((t.1.orderEmbOfFin t.2.2).injective h),
+      orderEmbOfFin_mem _ _ _⟩
+  · exact (t.1.orderEmbOfFin t.2.2).strictMono.comp (Fin.strictMono_succAbove i)
+
+/-- The boundary formula: `∂[v₀, …, vₙ₊₁] = ∑ᵢ (-1)ⁱ [v₀, …, v̂ᵢ, …, vₙ₊₁]`, where the
+`vᵢ` are the vertices of the face in increasing order. -/
+theorem faceChain_d {n : ℕ} (t : K.facesOfDim (n + 1)) :
+    K.faceChain R t ≫ (K.normalizedChainComplex R).d (n + 1) n =
+      ∑ i : Fin (n + 2), (-1 : ℤ) ^ i.val • K.faceChain R (faceErase t i) := by
+  simp only [faceChain, SSet.ιNormalizedChainComplex_d, δ_simplexOfFace]
 
 end
 

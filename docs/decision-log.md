@@ -155,3 +155,22 @@ review after the fact. To reverse one, say so and it will be redone.
 - The `0`-sphere (`s` with two elements) is not a separate theorem. `homology₀Iso` covers it,
   with two components.
 - The explicit boundary formula on faces (the rest of step 5's "concrete chains") is still to do.
+
+### Step 5: concrete chains and Euler–Poincaré (Claude)
+- Branch `claude/step5-euler-poincare`, stacked on the step 4 spheres branch.
+- **The "oriented chain complex" is the normalized complex of `K.toSSet`**, not a new
+  definition. Each face gets a summand `faceChain t`, and `faceChain_d` gives the textbook
+  boundary formula, with vertices in increasing order.
+  - **Alternative:** a separate complex built from `Finsupp` on faces, with its own boundary map
+    and a comparison isomorphism.
+  - **Why:** a second definition would need a comparison theorem and would duplicate
+    functoriality. The normalized complex already has both, and it is a coproduct over faces,
+    so it is concrete enough. A `Finsupp`/matrix presentation for computation can be added later
+    if decidable computations need it.
+- **Euler–Poincaré for chain complexes** (`Algebra/Homology/EulerPoincare.lean`) is proved here
+  in finite-sum form for `ℕ`-graded complexes of vector spaces, by rank–nullity and a
+  telescoping sum. Mathlib defines `eulerChar` and `homologyEulerChar` but, at the pinned version,
+  has not proved that they agree (Mathlib PR #29713 was expected to). Ours is a candidate to
+  upstream or to replace with Mathlib's once it lands.
+- `betti K k n := finrank k (Hₙ(K; ModuleCat.of k k))`. `k` must live in the same universe as
+  the vertex type, since `ModuleCat.{u} k` needs `u`-small coproducts.
