@@ -6,6 +6,7 @@ Authors: Mikael Vejdemo-Johansson
 module
 
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Faces
+public import Mathlib.AlgebraicTopology.SimplicialSet.Dimension
 public import Mathlib.AlgebraicTopology.SimplicialSet.NerveNondegenerate
 public import Mathlib.AlgebraicTopology.SimplicialSet.Subcomplex
 public import Mathlib.Data.Finset.Sort
@@ -46,6 +47,10 @@ simplicial map, but has many more nondegenerate simplices. See `docs/decision-lo
   monotone.
 * `PreAbstractSimplicialComplex.nonDegenerateEquiv`: nondegenerate `n`-simplices correspond to
   `n`-dimensional faces.
+* `PreAbstractSimplicialComplex.hasDimensionLT_toSSet`: if every face has at most `d` vertices,
+  `K.toSSet` has no nondegenerate simplices in degrees `≥ d`.
+* `PreAbstractSimplicialComplex.vertexOfSimplex`, `PreAbstractSimplicialComplex.simplexOfVertex`:
+  `0`-simplices of `K.toSSet` are the vertices of `K`; `edgeSimplex` is the `1`-simplex of an edge.
 -/
 
 @[expose] public section
@@ -130,5 +135,82 @@ noncomputable def nonDegenerateEquiv (n : ℕ) :
   right_inv t := by
     apply Subtype.ext
     exact image_orderEmbOfFin_univ _ _
+
+variable {K} in
+theorem toSSet_δ_obj {n : ℕ} (i : Fin (n + 2)) (x : K.toSSet _⦋n + 1⦌) (j : Fin (n + 1)) :
+    (K.toSSet.δ i x).val.obj j = x.val.obj (i.succAbove j) := rfl
+
+variable {K} in
+theorem toSSet_σ_obj {n : ℕ} (i : Fin (n + 1)) (x : K.toSSet _⦋n⦌) (j : Fin (n + 2)) :
+    (K.toSSet.σ i x).val.obj j = x.val.obj (i.predAbove j) := rfl
+
+/-- If every face of `K` has at most `d` vertices, then every simplex of `K.toSSet` in degree
+`n ≥ d` repeats a vertex, so it is degenerate. -/
+theorem hasDimensionLT_toSSet {d : ℕ} (h : ∀ s ∈ K, s.card ≤ d) :
+    K.toSSet.HasDimensionLT d where
+  degenerate_eq_top n hn := by
+    ext x
+    simp only [Set.top_eq_univ, Set.mem_univ, iff_true]
+    rw [SSet.mem_degenerate_iff_notMem_nonDegenerate, mem_nonDegenerate_toSSet_iff]
+    intro hx
+    have h1 := card_image_of_injective univ hx.injective
+    have h2 := h _ x.2
+    simp only [card_univ, Fintype.card_fin] at h1
+    omega
+
+/-! ### Vertices and edges -/
+
+theorem mem_nerveSubcomplex_zero (x : (nerve ι) _⦋0⦌) :
+    x ∈ K.nerveSubcomplex.obj (op ⦋0⦌) ↔ x.obj 0 ∈ K.vertices := by
+  have e : (univ : Finset (Fin 1)).image x.obj = {x.obj 0} := by
+    rw [univ_unique, image_singleton]
+    rfl
+  exact (congrArg (· ∈ K) e).to_iff
+
+/-- The vertex of `K` underlying a `0`-simplex of `K.toSSet`. -/
+def vertexOfSimplex (x : K.toSSet _⦋0⦌) : K.vertices :=
+  ⟨x.1.obj 0, (K.mem_nerveSubcomplex_zero x.1).1 x.2⟩
+
+/-- The `0`-simplex of `K.toSSet` given by a vertex of `K`. -/
+def simplexOfVertex (a : K.vertices) : K.toSSet _⦋0⦌ :=
+  ⟨(ComposableArrows.mk₀ a.1 : (nerve ι) _⦋0⦌), (K.mem_nerveSubcomplex_zero _).2 a.2⟩
+
+@[simp]
+theorem simplexOfVertex_vertexOfSimplex (x : K.toSSet _⦋0⦌) :
+    K.simplexOfVertex (K.vertexOfSimplex x) = x := by
+  apply Subtype.ext
+  apply nerve.ext_of_isThin
+  refine funext fun (j : Fin 1) ↦ ?_
+  fin_cases j
+  rfl
+
+@[simp]
+theorem vertexOfSimplex_simplexOfVertex (a : K.vertices) :
+    K.vertexOfSimplex (K.simplexOfVertex a) = a := rfl
+
+/-- The `1`-simplex of `K.toSSet` given by an edge `{a, b}` of `K` with `a ≤ b`. -/
+def edgeSimplex {a b : ι} (hab : a ≤ b) (h : {a, b} ∈ K) : K.toSSet _⦋1⦌ :=
+  ⟨(ComposableArrows.mk₁ (homOfLE hab) : (nerve ι) _⦋1⦌), (K.mem_nerveSubcomplex _).2 (by
+    have e : (univ : Finset (Fin 2)).image (ComposableArrows.mk₁ (homOfLE hab)).obj =
+        {a, b} := by
+      ext
+      simp [Fin.exists_fin_two, eq_comm]
+    exact (congrArg (· ∈ K) e).mpr h)⟩
+
+theorem δ_one_edgeSimplex {a b : K.vertices} (hab : a.1 ≤ b.1) (h : {a.1, b.1} ∈ K) :
+    K.toSSet.δ 1 (K.edgeSimplex hab h) = K.simplexOfVertex a := by
+  apply Subtype.ext
+  apply nerve.ext_of_isThin
+  refine funext fun (j : Fin 1) ↦ ?_
+  fin_cases j
+  rfl
+
+theorem δ_zero_edgeSimplex {a b : K.vertices} (hab : a.1 ≤ b.1) (h : {a.1, b.1} ∈ K) :
+    K.toSSet.δ 0 (K.edgeSimplex hab h) = K.simplexOfVertex b := by
+  apply Subtype.ext
+  apply nerve.ext_of_isThin
+  refine funext fun (j : Fin 1) ↦ ?_
+  fin_cases j
+  rfl
 
 end PreAbstractSimplicialComplex

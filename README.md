@@ -85,8 +85,10 @@ Files marked "Status: planned" in their header are placeholders that fix where m
    Mathlib's homology of `K.toSSet`, functorial on the poset of complexes (`Homology/Basic.lean`).
    Cochains and cohomology are defined for every simplicial set as `Hom(C•(X; R), M)` and pulled
    back to complexes, with cohomology contravariant (`Homology/Cochains.lean`).
-4. **First computations.** `H₀` counts components; simplices are acyclic; the boundary of the
-   `n`-simplex has the homology of `Sⁿ⁻¹`.
+4. **First computations** (partly done). Cones and simplices are acyclic, via an extra
+   degeneracy (`Homology/Acyclic.lean`). `H₀` is free on the connected components of the
+   1-skeleton, and homology vanishes above the dimension (`Homology/Computations.lean`). Still to
+   do: the boundary of the `n`-simplex has the homology of `Sⁿ⁻¹`.
 5. **Concrete chains and Euler–Poincaré.** The textbook oriented chain complex, its comparison
    with the bridged one, and `χ(K) = ∑ (-1)ⁿ fₙ = ∑ (-1)ⁿ βₙ` over a field.
 6. **First TDA layer.** Vietoris–Rips complexes, filtrations and persistence modules; then one of
