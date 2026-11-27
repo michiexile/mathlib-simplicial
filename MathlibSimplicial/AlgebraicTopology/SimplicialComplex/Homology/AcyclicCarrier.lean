@@ -11,7 +11,43 @@ public import Mathlib.LinearAlgebra.Finsupp.Supported
 /-!
 # The acyclic carrier theorem
 
-TODO docstring
+The acyclic carrier theorem is the classical tool for building chain maps and chain homotopies
+between simplicial chain complexes when there is no simplicial map available. An **acyclic
+carrier** `Φ` from `K` to `L` assigns to each face `s` of `K` a subcomplex `Φ s` of `L` such that
+* `Φ` is monotone: `s ⊆ t` implies `Φ s ≤ Φ t`, and
+* each `Φ s` is acyclic (it has the reduced homology of a point).
+
+A linear map of oriented chains is **carried** by `Φ` if it sends each face `s` to a chain
+supported on `Φ s`. The theorem says:
+* (existence) there is an augmentation-preserving chain map carried by `Φ`
+  (`AcyclicCarrier.chainMap`);
+* (uniqueness) any two augmentation-preserving chain maps carried by `Φ` are chain homotopic
+  (`AcyclicCarrier.homotopy`).
+
+Both are proved by induction on the degree: the image of a face `s` is chosen as a chain in
+`Φ s` whose boundary is already determined, which exists because `Φ s` is acyclic.
+
+We work with the oriented chains `K.facesOfDim n →₀ R` of `Homology/Oriented.lean` over a ring
+`R`, so that "a chain supported on `M`" is the submodule `Finsupp.supported` (`chainsIn`).
+Acyclicity is expressed concretely (`IsAcyclicIn`): every reduced cycle supported on `M` bounds a
+chain supported on `M`. `Homology/AcyclicSubcomplex.lean` relates this to homology.
+
+Typical uses: cones with an arbitrary apex are acyclic; homology does not depend on the vertex
+order; simplicial maps induce maps in homology; barycentric subdivision and the nerve lemma.
+
+## Main declarations
+
+* `PreAbstractSimplicialComplex.chainsIn`, `PreAbstractSimplicialComplex.IsReducedCycle`,
+  `PreAbstractSimplicialComplex.IsAcyclicIn`.
+* `PreAbstractSimplicialComplex.exists_lift`: the basic lifting step.
+* `PreAbstractSimplicialComplex.AcyclicCarrier`, `AcyclicCarrier.Carries`.
+* `AcyclicCarrier.chainMap`, `AcyclicCarrier.carries_chainMap`,
+  `AcyclicCarrier.augmentation_comp_chainMap`.
+* `AcyclicCarrier.homotopy`, with the explicit components `AcyclicCarrier.homotopyAux`.
+
+## References
+
+* J. R. Munkres, *Elements of Algebraic Topology*, §13 (Theorem 13.3).
 -/
 
 @[expose] public section
@@ -143,6 +179,25 @@ theorem Carries.comp_orientedBoundary {n m : ℕ}
   rw [map_zsmul]
   exact Submodule.smul_of_tower_mem _ _
     (chainsIn_mono R (Φ.mono s.2.1 (erase_subset _ _)) m (hf (faceErase s i)))
+
+omit [LinearOrder ι] in
+variable {Φ} in
+/-- A carried map sends a chain to a chain supported on any subcomplex containing the carriers
+of the faces in its support. -/
+theorem Carries.apply_mem {n m : ℕ} {f : (K.facesOfDim n →₀ R) →ₗ[R] (L.facesOfDim m →₀ R)}
+    (hf : Φ.Carries f) {c : K.facesOfDim n →₀ R} {N : PreAbstractSimplicialComplex κ}
+    (hN : ∀ t ∈ c.support, Φ t.1 ≤ N) : f c ∈ chainsIn R L N m := by
+  rw [← Finsupp.sum_single c, map_finsuppSum]
+  refine Submodule.finsuppSum_mem _ _ _ _ fun t ht ↦ ?_
+  rw [← Finsupp.smul_single_one, map_smul]
+  exact Submodule.smul_mem _ _ (chainsIn_mono R (hN t (Finsupp.mem_support_iff.2 ht)) m (hf t))
+
+omit [LinearOrder ι] in
+variable {Φ} in
+theorem Carries.mono {n m : ℕ} {f : (K.facesOfDim n →₀ R) →ₗ[R] (L.facesOfDim m →₀ R)}
+    (hf : Φ.Carries f) {Ψ : AcyclicCarrier R K L} (h : ∀ s : K.facesOfDim n, Φ s.1 ≤ Ψ s.1) :
+    Ψ.Carries f :=
+  fun s ↦ chainsIn_mono R (h s) m (hf s)
 
 omit [LinearOrder ι] in
 variable {Φ} in

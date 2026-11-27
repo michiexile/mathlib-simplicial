@@ -12,7 +12,35 @@ public import Mathlib.Algebra.Homology.ShortComplex.ModuleCat
 /-!
 # Acyclic subcomplexes
 
-TODO
+This file supplies the acyclic subcomplexes that the acyclic carrier theorem
+(`Homology/AcyclicCarrier.lean`) needs, and relates the concrete notion `IsAcyclicIn` to
+homology.
+
+* For `M ≤ L`, the oriented chains of `M` include into those of `L` (`inclChains`), with image
+  the chains supported on `M`. So `M` is acyclic inside `L` as soon as it is acyclic in itself
+  (`IsAcyclicIn.of_le`), and `IsAcyclicIn R M M` is equivalent to the vanishing of reduced
+  homology (`exists_boundary_of_isZero_homology`, `isZero_homology_of_exists_boundary`).
+* Degree `0` is handled directly: in a complex where every vertex is joined to `v`, a `0`-chain
+  with augmentation `0` is a boundary (`exists_boundary_zero_of_cone`), using the boundary of an
+  edge (`orientedBoundary_single_pair`).
+* Full simplices are acyclic (`isAcyclicIn_simplex`), from the homology computation of
+  `Homology/Acyclic.lean`.
+* **Cones with an arbitrary apex are acyclic** (`isAcyclicIn_self_of_cone`,
+  `isZero_homology_succ_of_cone'`). The earlier result `isZero_homology_succ_of_cone` needed the
+  apex to be the smallest vertex, because it builds an extra degeneracy of the ordered simplicial
+  set. Here the acyclic carrier `s ↦ Δ(s ∪ {v})` carries both the identity and the map collapsing
+  everything to the apex, so the two are chain homotopic.
+
+## Main declarations
+
+* `PreAbstractSimplicialComplex.inclChains`, `PreAbstractSimplicialComplex.IsAcyclicIn.of_le`.
+* `PreAbstractSimplicialComplex.exists_boundary_of_isZero_homology`,
+  `PreAbstractSimplicialComplex.isZero_homology_of_exists_boundary`,
+  `PreAbstractSimplicialComplex.IsAcyclicIn.isZero_homology_succ`.
+* `PreAbstractSimplicialComplex.exists_boundary_zero_of_cone`.
+* `PreAbstractSimplicialComplex.isAcyclicIn_simplex`.
+* `PreAbstractSimplicialComplex.isAcyclicIn_self_of_cone`,
+  `PreAbstractSimplicialComplex.isZero_homology_succ_of_cone'`.
 -/
 
 @[expose] public section
@@ -111,6 +139,14 @@ theorem exists_boundary_of_le {n : ℕ}
 
 end Inclusion
 
+/-- `M` is acyclic inside any complex containing it, as soon as it is acyclic in itself. -/
+theorem IsAcyclicIn.of_le (h : M ≤ L) (hM : IsAcyclicIn R M M) : IsAcyclicIn R L M where
+  exists_vertex := by
+    obtain ⟨t, ht⟩ := hM.exists_vertex
+    exact ⟨⟨t.1, h t.2.1, t.2.2⟩, ht⟩
+  exists_boundary n _ hc hcyc := exists_boundary_of_le R h
+    (fun c hc ↦ (hM.exists_boundary n c (fun t _ ↦ t.2.1) hc).imp fun _ hb ↦ hb.2) hc hcyc
+
 /-- If `Hₙ₊₁(M; R) = 0`, every oriented `(n+1)`-cycle of `M` is a boundary. -/
 theorem exists_boundary_of_isZero_homology {n : ℕ}
     (hM : IsZero (M.homology (ModuleCat.of R R) (n + 1))) (c : M.facesOfDim (n + 1) →₀ R)
@@ -205,5 +241,112 @@ theorem isAcyclicIn_simplex {s : Finset κ} (hs : s ∈ L) : IsAcyclicIn R L (si
     | succ n =>
       exact exists_boundary_of_le R hML (fun c hc ↦ exists_boundary_of_isZero_homology R
         (isZero_homology_succ_simplex (ModuleCat.of R R) hne n) c hc) hc hcyc
+
+section Cone
+
+omit [LinearOrder κ] in
+theorem eq_single_of_mem_chainsIn_simplex_singleton {v : κ} (hv : {v} ∈ L)
+    {c : L.facesOfDim 0 →₀ R} (hc : c ∈ chainsIn R L (simplex {v}) 0) :
+    c = Finsupp.single ⟨{v}, hv, card_singleton v⟩ (L.augmentation R c) := by
+  have hsub : c.support ⊆ {⟨{v}, hv, card_singleton v⟩} := by
+    intro t ht
+    have h1 := (mem_simplex.1 (hc ht))
+    exact Finset.mem_singleton.2
+      (Subtype.ext (Finset.Nonempty.subset_singleton_iff h1.1 |>.1 h1.2))
+  rw [Finsupp.support_subset_singleton] at hsub
+  conv_lhs => rw [hsub]
+  conv_rhs => rw [hsub]
+  simp
+
+omit [LinearOrder κ] in
+theorem eq_zero_of_mem_chainsIn_simplex_singleton {v : κ} {n : ℕ}
+    {c : L.facesOfDim (n + 1) →₀ R} (hc : c ∈ chainsIn R L (simplex {v}) (n + 1)) : c = 0 := by
+  rw [← Finsupp.support_eq_empty, Finset.eq_empty_iff_forall_notMem]
+  intro t ht
+  have h1 := card_le_card (mem_simplex.1 (hc ht)).2
+  rw [t.2.2, card_singleton] at h1
+  omega
+
+omit [LinearOrder κ] in
+theorem mem_chainsIn_self {n : ℕ} (c : M.facesOfDim n →₀ R) : c ∈ chainsIn R M M n :=
+  fun t _ ↦ t.2.1
+
+variable {v : κ} (hv : {v} ∈ M) (hcone : ∀ s ∈ M, insert v s ∈ M)
+
+/-- The acyclic carrier `s ↦ Δ(s ∪ {v})` on a cone with apex `v`. -/
+def coneCarrier : AcyclicCarrier R M M where
+  toFun s := simplex (insert v s)
+  mono' _ _ _ hst := simplex_mono (insert_subset_insert _ hst)
+  isAcyclicIn' _ hs := isAcyclicIn_simplex R (hcone _ hs)
+
+/-- The constant acyclic carrier `s ↦ Δ{v}`. -/
+def constCarrier : AcyclicCarrier R M M where
+  toFun _ := simplex {v}
+  mono' _ _ _ _ := le_rfl
+  isAcyclicIn' _ _ := isAcyclicIn_simplex R hv
+
+include hv hcone in
+/-- **Cones are acyclic**, whatever the position of the apex in the vertex order. -/
+theorem isAcyclicIn_self_of_cone : IsAcyclicIn R M M where
+  exists_vertex := ⟨⟨{v}, hv, card_singleton v⟩, hv⟩
+  exists_boundary n c _ hcyc := by
+    let Θ := coneCarrier R hcone
+    let Ψ := constCarrier R hv
+    have hf : ∀ n, Θ.Carries (orientedComponent (𝟙 (M.orientedChainComplex R)) n) :=
+      fun _ s ↦ single_mem_chainsIn R
+        (mem_simplex.2 ⟨M.nonempty_of_mem s.2.1, subset_insert _ _⟩) 1
+    have hg : ∀ n, Θ.Carries (orientedComponent Ψ.chainMap n) := fun n ↦
+      (Ψ.carries_chainMap n).mono fun _ ↦
+        simplex_mono (singleton_subset_iff.2 (mem_insert_self _ _))
+    have hfa : M.augmentation R ∘ₗ orientedComponent (𝟙 (M.orientedChainComplex R)) 0 =
+        M.augmentation R := LinearMap.comp_id _
+    have hga := Ψ.augmentation_comp_chainMap
+    have hΨ : ∀ {m : ℕ} (c : M.facesOfDim m →₀ R),
+        orientedComponent Ψ.chainMap m c ∈ chainsIn R M (simplex {v}) m :=
+      fun c ↦ (Ψ.carries_chainMap _).apply_mem fun _ _ ↦ le_rfl
+    cases n with
+    | zero =>
+      refine ⟨(Θ.homotopyAux hf hg hfa hga 0).1 c, mem_chainsIn_self R _, ?_⟩
+      have key := LinearMap.congr_fun (Θ.homotopyAux_zero hf hg hfa hga) c
+      have hgc := eq_single_of_mem_chainsIn_simplex_singleton R hv (hΨ c)
+      rw [← LinearMap.comp_apply (M.augmentation R), hga] at hgc
+      change M.augmentation R c = 0 at hcyc
+      rw [hcyc, Finsupp.single_zero] at hgc
+      rw [LinearMap.comp_apply] at key
+      rw [key]
+      change c - _ = c
+      rw [hgc, sub_zero]
+    | succ n =>
+      refine ⟨(Θ.homotopyAux hf hg hfa hga (n + 1)).1 c, mem_chainsIn_self R _, ?_⟩
+      have key := LinearMap.congr_fun (Θ.homotopyAux_succ hf hg hfa hga n) c
+      rw [LinearMap.comp_apply] at key
+      rw [key]
+      change c - _ - _ = c
+      rw [eq_zero_of_mem_chainsIn_simplex_singleton R (hΨ c), LinearMap.comp_apply,
+        show M.orientedBoundary R n c = 0 from hcyc, map_zero, sub_zero, sub_zero]
+
+end Cone
+
+/-- Conversely, if every oriented `(n+1)`-cycle of `M` is a boundary, `Hₙ₊₁(M; R) = 0`. -/
+theorem isZero_homology_of_exists_boundary {n : ℕ}
+    (hM : ∀ c : M.facesOfDim (n + 1) →₀ R, M.orientedBoundary R n c = 0 →
+      ∃ b, M.orientedBoundary R (n + 1) b = c) :
+    IsZero (M.homology (ModuleCat.of R R) (n + 1)) := by
+  have hex : (M.orientedChainComplex R).ExactAt (n + 1) := by
+    rw [HomologicalComplex.exactAt_iff' _ (n + 2) (n + 1) n (by simp) (by simp),
+      ShortComplex.moduleCat_exact_iff]
+    exact hM
+  exact ((HomologicalComplex.exactAt_iff_isZero_homology _ _).1 hex).of_iso
+    (M.homologyIsoOriented R (n + 1))
+
+theorem IsAcyclicIn.isZero_homology_succ (hM : IsAcyclicIn R M M) (n : ℕ) :
+    IsZero (M.homology (ModuleCat.of R R) (n + 1)) :=
+  isZero_homology_of_exists_boundary R fun c hc ↦
+    (hM.exists_boundary (n + 1) c (mem_chainsIn_self R c) hc).imp fun _ hb ↦ hb.2
+
+/-- A cone has no homology in positive degrees, wherever its apex sits in the vertex order. -/
+theorem isZero_homology_succ_of_cone' {v : κ} (hv : {v} ∈ M) (hcone : ∀ s ∈ M, insert v s ∈ M)
+    (n : ℕ) : IsZero (M.homology (ModuleCat.of R R) (n + 1)) :=
+  (isAcyclicIn_self_of_cone R hv hcone).isZero_homology_succ R n
 
 end PreAbstractSimplicialComplex
