@@ -135,3 +135,23 @@ review after the fact. To reverse one, say so and it will be redone.
 - **Deferred within step 4:** `H(∂Δⁿ) ≅ H(Sⁿ⁻¹)`. It needs the long exact sequence of the pair
   `(Δⁿ, ∂Δⁿ)` and the relative homology of that pair. Mathlib has relative chain complexes for
   simplicial-set pairs; the plan is to do this next, as a separate PR.
+
+### Step 4, continued: spheres via normalized chains (Claude)
+- Branch `claude/step4-spheres`, stacked on step 4.
+- **Route:** the normalized chain complex of `K.toSSet` is the textbook complex
+  `Nₙ = ⨁_{n-faces} R` (`normalizedChainComplexXIso`). Two complexes with the same faces up to
+  `k + 2` vertices have the same `Hₖ` (`isIso_homologyMap_of_faces`). So `∂Δ` agrees with the
+  acyclic `Δ` below the top degree. In the top degree, `Hₙ₊₁(∂Δ)` = cycles of `Δ` = image of the
+  top face, which is `R`.
+  - **Alternative:** the long exact sequence of the pair `(Δ, ∂Δ)` with Mathlib's relative
+    homology `SSetPair.homology`.
+  - **Why:** that route needs the relative homology of `(Δ, ∂Δ)`, and Mathlib has no normalized
+    relative complex to compute it. The truncation argument uses only existing API. The
+    skeleton comparison lemma it produces is also useful in its own right, e.g. for cellular
+    arguments and Euler–Poincaré.
+- The top-degree isomorphism assumes `[Balanced C]` (true in any abelian category, such as
+  `ModuleCat k`). It needs "mono and epi implies iso" to identify cycles with the image of the
+  top face.
+- The `0`-sphere (`s` with two elements) is not a separate theorem. `homology₀Iso` covers it,
+  with two components.
+- The explicit boundary formula on faces (the rest of step 5's "concrete chains") is still to do.

@@ -7,7 +7,8 @@ module
 
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Clique
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Dimension
-public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Basic
+public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Acyclic
+public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Chains
 public import Mathlib.AlgebraicTopology.SimplicialSet.Homology.HomologyZero
 public import Mathlib.AlgebraicTopology.SimplicialSet.Homology.Nondegenerate
 public import Mathlib.Combinatorics.SimpleGraph.Connectivity.Connected
@@ -34,6 +35,22 @@ to the vertices of `K` (`K.vertexGraph`). We prove this as an equivalence `π₀
 
 which is `R` itself when the 1-skeleton is connected.
 
+## The boundary of a simplex is a sphere
+
+Let `s` have `n + 3` elements, so `boundary s` is the boundary of an `(n+2)`-simplex: an
+`(n+1)`-sphere. Its homology is `R` in degrees `0` and `n + 1` and zero otherwise:
+* below the top degree, `boundary s` and `simplex s` have the same faces with at most
+  `k + 2` vertices, so they have the same `Hₖ` (`isIso_homologyMap_of_faces`). The simplex is
+  acyclic.
+* in the top degree `n + 1`, `boundary s` has no `(n+2)`-faces. So `Hₙ₊₁(∂s)` is the group of
+  `(n+1)`-cycles, the same as for `simplex s`. Since the simplex is acyclic, those cycles are
+  exactly the boundary of the top face, a single copy of `R`
+  (`homologyIsoBoundaryTop`; it needs `C` to be balanced, e.g. abelian);
+* above the top degree, there are no faces.
+
+The `0`-sphere (`s` with two elements) is the case `n = -1`, with `H₀ ≅ R ⊕ R`. It is covered by
+`homology₀Iso`, since `boundary s` then has two components.
+
 ## Main declarations
 
 * `PreAbstractSimplicialComplex.isZero_homology_of_card_le`,
@@ -42,6 +59,10 @@ which is `R` itself when the 1-skeleton is connected.
 * `PreAbstractSimplicialComplex.π₀Equiv : π₀ K.toSSet ≃ K.vertexGraph.ConnectedComponent`.
 * `PreAbstractSimplicialComplex.homology₀Iso`,
   `PreAbstractSimplicialComplex.homology₀IsoOfConnected`.
+* `PreAbstractSimplicialComplex.homology₀IsoBoundary`,
+  `PreAbstractSimplicialComplex.isZero_homology_succ_boundary`,
+  `PreAbstractSimplicialComplex.homologyIsoBoundaryTop`,
+  `PreAbstractSimplicialComplex.isZero_homology_boundary_of_card_le`: the homology of `∂Δⁿ⁺²`.
 -/
 
 @[expose] public section
@@ -143,5 +164,82 @@ noncomputable def homology₀IsoOfConnected (h : K.vertexGraph.Connected) :
   K.homology₀Iso R ≪≫ coproductUniqueIso _
 
 end Components
+
+section Boundary
+
+variable [CategoryWithHomology C] (R : C) {s : Finset ι}
+
+theorem isIso_homologyMap_boundary_le_simplex {k : ℕ} (hk : k + 3 ≤ s.card) :
+    IsIso (PreAbstractSimplicialComplex.homologyMap R (boundary_le_simplex s) k) :=
+  isIso_homologyMap_of_faces R _ fun _ ht _ ↦ mem_boundary_of_card_lt ht (by omega)
+
+theorem isZero_homology_boundary_of_card_le {k : ℕ} (hk : s.card ≤ k + 1) :
+    IsZero ((boundary s).homology R k) :=
+  (boundary s).isZero_homology_of_card_le R (d := s.card - 1)
+    (fun _ ht ↦ by have := card_lt_card ht.2; omega) (by omega)
+
+variable [HasZeroObject C]
+
+/-- Below the top degree, the boundary of a simplex has no homology in positive degrees. -/
+theorem isZero_homology_succ_boundary {k : ℕ} (hk : k + 4 ≤ s.card) :
+    IsZero ((boundary s).homology R (k + 1)) :=
+  have := isIso_homologyMap_boundary_le_simplex R (k := k + 1) hk
+  (isZero_homology_succ_simplex R (card_pos.1 (by omega)) k).of_iso
+    (asIso (PreAbstractSimplicialComplex.homologyMap R (boundary_le_simplex s) (k + 1)))
+
+/-- The boundary of a simplex with at least three vertices is connected: `H₀ ≅ R`. -/
+noncomputable def homology₀IsoBoundary (hs : 3 ≤ s.card) : (boundary s).homology R 0 ≅ R :=
+  have := isIso_homologyMap_boundary_le_simplex R (k := 0) hs
+  asIso (PreAbstractSimplicialComplex.homologyMap R (boundary_le_simplex s) 0) ≪≫
+    homology₀IsoSimplex R (card_pos.1 (by omega))
+
+/-- The top homology of the boundary of a simplex: if `s` has `n + 3` elements, then
+`Hₙ₊₁(∂s; R) ≅ R`. -/
+noncomputable def homologyIsoBoundaryTop [Balanced C] {n : ℕ} (hs : s.card = n + 3) :
+    (boundary s).homology R (n + 1) ≅ R := by
+  have hsne : s.Nonempty := card_pos.1 (by omega)
+  let A := (boundary s).normalizedChainComplex R
+  let B := (simplex s).normalizedChainComplex R
+  let φ := normalizedChainComplexMap R (boundary_le_simplex s)
+  -- `∂s` has no `(n+2)`-faces and `s` has no `(n+3)`-faces.
+  have hA : IsZero (A.X (n + 2)) := by
+    have := (boundary s).hasDimensionLT_toSSet (d := n + 2)
+      (fun _ ht ↦ by have := card_lt_card ht.2; omega)
+    exact SSet.isZero_normalizedChainComplex_X_of_hasDimensionLT _ R (n + 2) (n + 2)
+  have hB : IsZero (B.X (n + 3)) := by
+    have := (simplex s).hasDimensionLT_toSSet (d := n + 3)
+      (fun _ ht ↦ by have := card_le_card ht.2; omega)
+    exact SSet.isZero_normalizedChainComplex_X_of_hasDimensionLT _ R (n + 3) (n + 3)
+  -- The simplex is acyclic in positive degrees.
+  have hBex (j : ℕ) : B.ExactAt (j + 1) := by
+    rw [HomologicalComplex.exactAt_iff_isZero_homology]
+    exact ((simplex s).homologyIsoNormalized R (j + 1)).isZero_iff.1
+      (isZero_homology_succ_simplex R hsne j)
+  have hiso (j : ℕ) (hj : j ≤ n + 1) : IsIso (φ.f j) :=
+    isIso_normalizedChainComplexMap_f R _ fun _ ht _ ↦ mem_boundary_of_card_lt ht (by omega)
+  -- Work with the short complexes `X (n+2) → X (n+1) → X n`.
+  let SA := A.sc' (n + 2) (n + 1) n
+  let SB := B.sc' (n + 2) (n + 1) n
+  let ψ : SA ⟶ SB := (HomologicalComplex.shortComplexFunctor' C _ (n + 2) (n + 1) n).map φ
+  have hSB : SB.Exact := (B.exactAt_iff' (n + 2) (n + 1) n (by simp) (by simp)).1 (hBex n)
+  have hmono : Mono SB.f :=
+    ((B.exactAt_iff' (n + 3) (n + 2) (n + 1) (by simp) (by simp)).1 (hBex (n + 1))).mono_g
+      (hB.eq_of_src _ _)
+  have : IsIso SA.homologyπ := ShortComplex.isIso_homologyπ _ (hA.eq_of_src _ _)
+  have : IsIso (ShortComplex.cyclesMap ψ) :=
+    ShortComplex.isIso_cyclesMap_of_isIso_of_mono' ψ (hiso (n + 1) le_rfl)
+      (by have := hiso n (by omega); dsimp [ψ]; infer_instance)
+  have : IsIso SB.toCycles := hSB.isIso_toCycles
+  let hunique : Unique ((simplex s).facesOfDim (n + 2)) :=
+    { default := ⟨s, self_mem_simplex hsne, hs⟩
+      uniq := fun t ↦ Subtype.ext (eq_of_subset_of_card_le t.2.1.2 (by rw [t.2.2, hs])) }
+  -- `Hₙ₊₁(∂s) ≅ Zₙ₊₁(∂s) ≅ Zₙ₊₁(s) ≅ Nₙ₊₂(s) ≅ R`.
+  exact (boundary s).homologyIsoNormalized R (n + 1) ≪≫
+    ShortComplex.homologyMapIso (A.isoSc' (n + 2) (n + 1) n (by simp) (by simp)) ≪≫
+    (asIso SA.homologyπ).symm ≪≫ asIso (ShortComplex.cyclesMap ψ) ≪≫
+    (asIso SB.toCycles).symm ≪≫ (simplex s).normalizedChainComplexXIso R (n + 2) ≪≫
+    coproductUniqueIso _
+
+end Boundary
 
 end PreAbstractSimplicialComplex
