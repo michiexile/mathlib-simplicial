@@ -80,10 +80,11 @@ Files marked "Status: planned" in their header are placeholders that fix where m
 2. **Clique and order complexes** (done). Clique complexes, 1-skeleton graphs and flag complexes
    (`Clique.lean`); order complexes, comparability graphs, face posets and barycentric
    subdivision (`OrderComplex.lean`).
-3. **Bridge to simplicial sets.** `K.toSSet` as a subcomplex of the nerve of the vertex order,
-   with nondegenerate simplices matching faces. Homology of `K` is then Mathlib's homology of
-   `K.toSSet`. The cochain side is set up the same way: cochains on `K` with a bridge to cochains
-   of `K.toSSet`.
+3. **Bridge to simplicial sets** (done). `K.toSSet` as a subcomplex of the nerve of the vertex
+   order, with nondegenerate simplices matching faces (`ToSSet.lean`). Homology of `K` is
+   Mathlib's homology of `K.toSSet`, functorial on the poset of complexes (`Homology/Basic.lean`).
+   Cochains and cohomology are defined for every simplicial set as `Hom(C•(X; R), M)` and pulled
+   back to complexes, with cohomology contravariant (`Homology/Cochains.lean`).
 4. **First computations.** `H₀` counts components; simplices are acyclic; the boundary of the
    `n`-simplex has the homology of `Sⁿ⁻¹`.
 5. **Concrete chains and Euler–Poincaré.** The textbook oriented chain complex, its comparison

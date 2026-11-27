@@ -83,3 +83,28 @@ review after the fact. To reverse one, say so and it will be redone.
   to, or has the same homology as, `K` is deferred until homology exists (step 3 onwards).
 - Not done: comparing the order complex with the nondegenerate simplices of `nerve α`. That is
   part of the step 3 bridge.
+
+### Step 3: bridge to simplicial sets (Claude)
+- Branch `claude/step3-sset-bridge`, stacked on step 2.
+- **Model:** for a linear order on `ι`, `K.toSSet` is the subcomplex of Mathlib's `nerve ι` made of
+  the monotone maps `Fin (n + 1) → ι` whose image is a face. Its nondegenerate `n`-simplices are
+  the strictly monotone ones, and they correspond to the `n`-dimensional faces
+  (`nonDegenerateEquiv`).
+  - **Alternative:** the *ordered* simplicial set (all maps `Fin (n + 1) → ι` whose image is a
+    face, with no order needed). It is functorial in every simplicial map, but it has many more
+    nondegenerate simplices, and its homology agrees with the usual one only after a theorem.
+  - **Why:** the nerve model reuses Mathlib's nerve API and matches the textbook complex. It is
+    functorial in inclusions, which is all that filtrations and persistence need. Functoriality
+    in arbitrary simplicial maps is postponed; the plan is to get it through the ordered model or
+    through the concrete chain complex of step 5.
+- **Homology** of `K` is defined as `K.toSSet.homology R n`, with no new chain complex. It is a
+  functor from the poset `PreAbstractSimplicialComplex ι` to `C`.
+- **Cochains:** Mathlib has no cohomology of simplicial sets, so this repo adds
+  `SSet.cochainComplex X R M`. It is the chain complex, passed to `Cᵒᵖ`, with
+  `preadditiveYoneda.obj M = Hom(-, M)` applied in each degree. The result lives in
+  `AddCommGrpCat` with shape `(ComplexShape.down ℕ).symm`. Cohomology of `K` is that of
+  `K.toSSet`, as a functor `(PreAbstractSimplicialComplex ι)ᵒᵖ ⥤ AddCommGrpCat`.
+  - **Alternatives:** a `k`-linear version using `linearYoneda`, which needs a `Linear` instance;
+    or cochains defined directly as functions on faces.
+  - **Why:** it works for any preadditive coefficient category and is functorial for free. The
+    concrete "functions on faces" description belongs with the step 5 comparison.
