@@ -13,6 +13,7 @@ public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Cha
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Cochains
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Computations
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.EulerPoincare
+public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Homology.Oriented
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Join
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Link
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.OrderComplex
