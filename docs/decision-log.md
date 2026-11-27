@@ -68,3 +68,18 @@ review after the fact. To reverse one, say so and it will be redone.
 - Keep moving through the roadmap without waiting for each PR to be reviewed; open separate
   branches only for work that belongs in its own PR (stacked on unmerged work when needed).
   Record major decisions here instead of asking.
+
+### Step 2: clique and order complexes (Claude)
+- Branch `claude/step2-clique-order`, stacked on PR #3.
+- `SimpleGraph.cliqueComplex` is a `PreAbstractSimplicialComplex` (its vertex set is all of `V`
+  anyway). The 1-skeleton `K.graph` is built with Mathlib's `SimpleGraph.fromRel`.
+- `IsFlag K` quantifies only over finsets of *vertices*, so that subcomplexes with fewer vertices
+  can still be flag; `IsFlag.eq_cliqueComplex` needs the extra hypothesis `K.vertices = univ`.
+- `orderComplex α` needs only `[LE α]`; chains use Mathlib's `IsChain (· ≤ ·)`. It is proved equal
+  to the clique complex of a new `SimpleGraph.comparability α` rather than defined that way, so
+  the chain description is the definitional one.
+- The barycentric subdivision is defined as the order complex of the face poset
+  `{s // s ∈ K}` (an `abbrev`, so it inherits the subset order). Proving that it is homeomorphic
+  to, or has the same homology as, `K` is deferred until homology exists (step 3 onwards).
+- Not done: comparing the order complex with the nondegenerate simplices of `nerve α`. That is
+  part of the step 3 bridge.

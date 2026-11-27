@@ -77,7 +77,9 @@ Files marked "Status: planned" in their header are placeholders that fix where m
    simplex, boundary, skeleta (`Simplex.lean`); dimension (`Dimension.lean`); simplicial maps
    and the category of complexes (`SimplicialMap.lean`); cones (`Cone.lean`); closed stars and
    links (`Link.lean`); joins (`Join.lean`).
-2. **Clique and order complexes.** The standard sources of complexes in combinatorics and TDA.
+2. **Clique and order complexes** (done). Clique complexes, 1-skeleton graphs and flag complexes
+   (`Clique.lean`); order complexes, comparability graphs, face posets and barycentric
+   subdivision (`OrderComplex.lean`).
 3. **Bridge to simplicial sets.** `K.toSSet` as a subcomplex of the nerve of the vertex order,
    with nondegenerate simplices matching faces. Homology of `K` is then Mathlib's homology of
    `K.toSSet`. The cochain side is set up the same way: cochains on `K` with a bridge to cochains
