@@ -276,13 +276,13 @@ variable {v : κ} (hv : {v} ∈ M) (hcone : ∀ s ∈ M, insert v s ∈ M)
 /-- The acyclic carrier `s ↦ Δ(s ∪ {v})` on a cone with apex `v`. -/
 def coneCarrier : AcyclicCarrier R M M where
   toFun s := simplex (insert v s)
-  mono' _ _ _ hst := simplex_mono (insert_subset_insert _ hst)
+  mono' _ _ _ _ hst := simplex_mono (insert_subset_insert _ hst)
   isAcyclicIn' _ hs := isAcyclicIn_simplex R (hcone _ hs)
 
 /-- The constant acyclic carrier `s ↦ Δ{v}`. -/
 def constCarrier : AcyclicCarrier R M M where
   toFun _ := simplex {v}
-  mono' _ _ _ _ := le_rfl
+  mono' _ _ _ _ _ := le_rfl
   isAcyclicIn' _ _ := isAcyclicIn_simplex R hv
 
 include hv hcone in
@@ -326,6 +326,62 @@ theorem isAcyclicIn_self_of_cone : IsAcyclicIn R M M where
         show M.orientedBoundary R n c = 0 from hcyc, map_zero, sub_zero, sub_zero]
 
 end Cone
+
+section Transfer
+
+variable {ι : Type u} [LinearOrder ι] {K : PreAbstractSimplicialComplex ι}
+
+/-- **Acyclicity transfers along carriers.** If `K` is acyclic and there are carriers
+`Φ : K → L`, `Ψ : L → K` such that an acyclic carrier containing the identity carries `Φ ∘ Ψ`,
+then `L` is acyclic. -/
+theorem isAcyclicIn_self_of_carriers (Φ : AcyclicCarrier R K L) (Ψ : AcyclicCarrier R L K)
+    (ΘL : AcyclicCarrier R L L) (hL : ∀ t ∈ L, t ∈ ΘL t)
+    (hLc : ∀ t ∈ L, ∀ s ∈ K, s ∈ Ψ t → Φ s ≤ ΘL t) (hK : IsAcyclicIn R K K) :
+    IsAcyclicIn R L L where
+  exists_vertex := by
+    obtain ⟨t, -⟩ := hK.exists_vertex
+    obtain ⟨t', -⟩ := (Φ.isAcyclicIn t.2.1).exists_vertex
+    exact ⟨t', t'.2.1⟩
+  exists_boundary n z _ hz := by
+    have hf := AcyclicCarrier.carries_id (Θ := ΘL) hL
+    have hg : ∀ n, ΘL.Carries (orientedComponent (Ψ.chainMap ≫ Φ.chainMap) n) :=
+      fun n ↦ (Ψ.carries_chainMap n).comp (Φ.carries_chainMap n) hLc
+    have hfa : L.augmentation R ∘ₗ orientedComponent (𝟙 (L.orientedChainComplex R)) 0 =
+        L.augmentation R := LinearMap.comp_id _
+    have hga : L.augmentation R ∘ₗ orientedComponent (Ψ.chainMap ≫ Φ.chainMap) 0 =
+        L.augmentation R := by
+      change L.augmentation R ∘ₗ (orientedComponent Φ.chainMap 0 ∘ₗ
+        orientedComponent Ψ.chainMap 0) = _
+      rw [← LinearMap.comp_assoc, Φ.augmentation_comp_chainMap, Ψ.augmentation_comp_chainMap]
+    set w := orientedComponent Ψ.chainMap n z with hw
+    have hwc : K.IsReducedCycle R n w := by
+      cases n with
+      | zero =>
+        change K.augmentation R w = 0
+        rw [hw, ← LinearMap.comp_apply, Ψ.augmentation_comp_chainMap]
+        exact hz
+      | succ n =>
+        change K.orientedBoundary R n w = 0
+        rw [hw, ← LinearMap.comp_apply, orientedBoundary_comp_orientedComponent,
+          LinearMap.comp_apply, show L.orientedBoundary R n z = 0 from hz, map_zero]
+    obtain ⟨a, -, ha⟩ := hK.exists_boundary n w (mem_chainsIn_self R w) hwc
+    refine ⟨orientedComponent Φ.chainMap (n + 1) a +
+      (ΘL.homotopyAux hf hg hfa hga n).1 z, mem_chainsIn_self R _, ?_⟩
+    rw [map_add, ← LinearMap.comp_apply, orientedBoundary_comp_orientedComponent,
+      LinearMap.comp_apply, ha, ← LinearMap.comp_apply (L.orientedBoundary R n)]
+    cases n with
+    | zero =>
+      rw [ΘL.homotopyAux_zero hf hg hfa hga]
+      change _ + (z - orientedComponent Φ.chainMap 0 w) = z
+      abel
+    | succ n =>
+      rw [ΘL.homotopyAux_succ hf hg hfa hga n]
+      change _ + (z - orientedComponent Φ.chainMap (n + 1) w -
+        (ΘL.homotopyAux hf hg hfa hga n).1 (L.orientedBoundary R n z)) = z
+      rw [show L.orientedBoundary R n z = 0 from hz, map_zero]
+      abel
+
+end Transfer
 
 /-- Conversely, if every oriented `(n+1)`-cycle of `M` is a boundary, `Hₙ₊₁(M; R) = 0`. -/
 theorem isZero_homology_of_exists_boundary {n : ℕ}

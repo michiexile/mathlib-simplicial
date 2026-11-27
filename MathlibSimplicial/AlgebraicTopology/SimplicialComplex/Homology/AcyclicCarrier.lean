@@ -136,7 +136,7 @@ variable (K : PreAbstractSimplicialComplex ι) (L : PreAbstractSimplicialComplex
 structure AcyclicCarrier where
   /-- The subcomplex of `L` carrying the face `s`. -/
   toFun : Finset ι → PreAbstractSimplicialComplex κ
-  mono' ⦃s t : Finset ι⦄ : t ∈ K → s ⊆ t → toFun s ≤ toFun t
+  mono' ⦃s t : Finset ι⦄ : s ∈ K → t ∈ K → s ⊆ t → toFun s ≤ toFun t
   isAcyclicIn' ⦃s : Finset ι⦄ : s ∈ K → IsAcyclicIn R L (toFun s)
 
 variable {R K L} in
@@ -160,7 +160,8 @@ instance : CoeFun (AcyclicCarrier R K L) fun _ ↦ Finset ι → PreAbstractSimp
   ⟨toFun⟩
 
 omit [LinearOrder ι] in
-theorem mono {s t : Finset ι} (ht : t ∈ K) (hst : s ⊆ t) : Φ s ≤ Φ t := Φ.mono' ht hst
+theorem mono {s t : Finset ι} (hs : s ∈ K) (ht : t ∈ K) (hst : s ⊆ t) : Φ s ≤ Φ t :=
+  Φ.mono' hs ht hst
 
 omit [LinearOrder ι] in
 theorem isAcyclicIn {s : Finset ι} (hs : s ∈ K) : IsAcyclicIn R L (Φ s) := Φ.isAcyclicIn' hs
@@ -178,7 +179,7 @@ theorem Carries.comp_orientedBoundary {n m : ℕ}
   refine Submodule.sum_mem _ fun i _ ↦ ?_
   rw [map_zsmul]
   exact Submodule.smul_of_tower_mem _ _
-    (chainsIn_mono R (Φ.mono s.2.1 (erase_subset _ _)) m (hf (faceErase s i)))
+    (chainsIn_mono R (Φ.mono (faceErase s i).2.1 s.2.1 (erase_subset _ _)) m (hf (faceErase s i)))
 
 omit [LinearOrder ι] in
 variable {Φ} in

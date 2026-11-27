@@ -11,7 +11,25 @@ public import Mathlib.Combinatorics.Colex
 /-!
 # Barycentric subdivision
 
-TODO
+The barycentric subdivision `sd K` of `K` has the faces of `K` as vertices and the chains of
+faces `σ₀ ⊂ ⋯ ⊂ σₖ` as faces. It is the order complex of the face poset
+(`PreAbstractSimplicialComplex.subdivision` in `OrderComplex.lean`), but homology needs a linear
+order on the vertices, and the face poset is only partially ordered. So here the vertex type is
+`Colex (Finset ι)`: finsets of `ι` in colexicographic order, a linear order that extends
+inclusion (`Finset.Colex.toColex_le_toColex_of_subset`). In a chain of faces the colex-largest
+face contains all the others (`ofColex_subset_max'`), and the colex-smallest is contained in all
+of them (`ofColex_min'_subset`).
+
+**Subdivision does not change homology** (`homologyIsoBarycentricSubdivision`). The proof uses
+acyclic carriers in both directions: a face `s` goes to `sd(Δs)` (a cone with apex `s`), and a
+chain `S` goes back to the simplex on its largest face `⋃ S`.
+
+## Main declarations
+
+* `PreAbstractSimplicialComplex.barycentricSubdivision`,
+  `PreAbstractSimplicialComplex.barycentricSubdivisionAbove` (chains of faces above a face).
+* `PreAbstractSimplicialComplex.homologyIsoBarycentricSubdivision`.
+* `PreAbstractSimplicialComplex.isAcyclicIn_self_barycentricSubdivision`.
 -/
 
 @[expose] public section
@@ -54,6 +72,14 @@ theorem ofColex_subset_max' {S : Finset (Colex (Finset ι))} (hS : S ∈ K.baryc
   · have hle : S.max' hS.1 ≤ x := Finset.Colex.toColex_le_toColex_of_subset h
     rw [le_antisymm hle (S.le_max' x hx)]
 
+/-- In a chain of faces, the colexicographically smallest face lies in every face. -/
+theorem ofColex_min'_subset {S : Finset (Colex (Finset ι))} (hS : S ∈ K.barycentricSubdivision)
+    {x : Colex (Finset ι)} (hx : x ∈ S) : ofColex (S.min' hS.1) ⊆ ofColex x := by
+  rcases hS.2.2 x hx _ (S.min'_mem hS.1) with h | h
+  · have hle : x ≤ S.min' hS.1 := Finset.Colex.toColex_le_toColex_of_subset h
+    rw [le_antisymm (S.min'_le x hx) hle]
+  · exact h
+
 /-- The union of a chain of faces is its largest face. -/
 theorem sup_eq_max' {S : Finset (Colex (Finset ι))} (hS : S ∈ K.barycentricSubdivision) :
     S.sup ofColex = ofColex (S.max' hS.1) :=
@@ -77,12 +103,12 @@ theorem _root_.Finset.mem_insert_of_decidableEq {α : Type*} {inst : DecidableEq
   @Finset.mem_insert _ inst _ _ _
 
 omit [LinearOrder ι] in
-/-- Inserting a face that contains every face of a chain gives a chain. (Stated for any
+/-- Inserting a face comparable with every face of a chain gives a chain. (Stated for any
 `DecidableEq` instance, see `Finset.mem_insert_of_decidableEq`.) -/
 theorem insert_mem_barycentricSubdivision {inst : DecidableEq (Colex (Finset ι))}
     {L : PreAbstractSimplicialComplex ι}
     {S : Finset (Colex (Finset ι))} (hS : S ∈ L.barycentricSubdivision) {s : Finset ι}
-    (hs : s ∈ L) (hsub : ∀ x ∈ S, ofColex x ⊆ s) :
+    (hs : s ∈ L) (hcomp : ∀ x ∈ S, ofColex x ⊆ s ∨ s ⊆ ofColex x) :
     @insert _ _ (@Finset.instInsert _ inst) (toColex s) S ∈ L.barycentricSubdivision := by
   refine ⟨⟨toColex s, Finset.mem_insert_of_decidableEq.2 (Or.inl rfl)⟩, fun x hx ↦ ?_,
     fun x hx y hy ↦ ?_⟩
@@ -92,8 +118,8 @@ theorem insert_mem_barycentricSubdivision {inst : DecidableEq (Colex (Finset ι)
   · rcases Finset.mem_insert_of_decidableEq.1 hx with h | h <;>
       rcases Finset.mem_insert_of_decidableEq.1 hy with h' | h'
     · rw [h, h']; exact Or.inl subset_rfl
-    · rw [h]; exact Or.inr (hsub y h')
-    · rw [h']; exact Or.inl (hsub x h)
+    · rw [h]; exact (hcomp y h').symm
+    · rw [h']; exact hcomp x h
     · exact hS.2.2 x h y h'
 
 omit [LinearOrder ι] in
@@ -108,14 +134,42 @@ theorem isAcyclicIn_self_barycentricSubdivision_simplex (R : Type u) [Ring R] {s
     IsAcyclicIn R (simplex s).barycentricSubdivision (simplex s).barycentricSubdivision :=
   isAcyclicIn_self_of_cone R (singleton_mem_barycentricSubdivision (self_mem_simplex hs))
     fun _ hS ↦ insert_mem_barycentricSubdivision hS (self_mem_simplex hs)
-      fun x hx ↦ (mem_simplex.1 (hS.2.1 x hx)).2
+      fun x hx ↦ Or.inl (mem_simplex.1 (hS.2.1 x hx)).2
+
+variable (K) in
+/-- The chains of faces of `K` that contain `s`: the subcomplex of the barycentric subdivision
+spanned by the faces above `s`. -/
+def barycentricSubdivisionAbove (s : Finset ι) : PreAbstractSimplicialComplex (Colex (Finset ι))
+    where
+  faces := {S | S ∈ K.barycentricSubdivision ∧ ∀ x ∈ S, s ⊆ ofColex x}
+  isRelLowerSet_faces := fun _ hS ↦ ⟨hS.1.1, fun _ hTS hT ↦
+    ⟨K.barycentricSubdivision.mem_of_subset hS.1 hTS hT, fun x hx ↦ hS.2 x (hTS hx)⟩⟩
+
+omit [LinearOrder ι] in
+theorem barycentricSubdivisionAbove_le (s : Finset ι) :
+    K.barycentricSubdivisionAbove s ≤ K.barycentricSubdivision := fun _ hS ↦ hS.1
+
+omit [LinearOrder ι] in
+theorem barycentricSubdivisionAbove_anti {s t : Finset ι} (h : s ⊆ t) :
+    K.barycentricSubdivisionAbove t ≤ K.barycentricSubdivisionAbove s :=
+  fun _ hS ↦ ⟨hS.1, fun x hx ↦ h.trans (hS.2 x hx)⟩
+
+/-- The chains of faces above a face `s` form a cone with apex `s`, so they are acyclic. -/
+theorem isAcyclicIn_barycentricSubdivisionAbove (R : Type u) [Ring R] {s : Finset ι}
+    (hs : s ∈ K) :
+    IsAcyclicIn R K.barycentricSubdivision (K.barycentricSubdivisionAbove s) :=
+  (isAcyclicIn_self_of_cone R (M := K.barycentricSubdivisionAbove s) (v := toColex s)
+    ⟨singleton_mem_barycentricSubdivision hs, fun x hx ↦ by rw [mem_singleton.1 hx]; rfl⟩
+    fun _ hS ↦ ⟨insert_mem_barycentricSubdivision hS.1 hs fun x hx ↦ Or.inr (hS.2 x hx),
+      fun x hx ↦ (Finset.mem_insert_of_decidableEq.1 hx).elim (fun h ↦ by rw [h]; rfl)
+        (hS.2 x)⟩).of_le R (barycentricSubdivisionAbove_le s)
 
 variable (R : Type u) [Ring R] (K)
 
 /-- The carrier `s ↦ sd(Δs)` from `K` to its barycentric subdivision. -/
 def toSubdivisionCarrier : AcyclicCarrier R K K.barycentricSubdivision where
   toFun s := (simplex s).barycentricSubdivision
-  mono' _ _ _ hst := barycentricSubdivision_mono (simplex_mono hst)
+  mono' _ _ _ _ hst := barycentricSubdivision_mono (simplex_mono hst)
   isAcyclicIn' _ hs :=
     (isAcyclicIn_self_barycentricSubdivision_simplex R (K.nonempty_of_mem hs)).of_le R
       (barycentricSubdivision_mono ((simplex_le_iff (K.nonempty_of_mem hs)).2 hs))
@@ -123,20 +177,20 @@ def toSubdivisionCarrier : AcyclicCarrier R K K.barycentricSubdivision where
 /-- The carrier `S ↦ Δ(⋃ S)` from the barycentric subdivision of `K` back to `K`. -/
 def ofSubdivisionCarrier : AcyclicCarrier R K.barycentricSubdivision K where
   toFun S := simplex (S.sup ofColex)
-  mono' _ _ _ hST := simplex_mono (Finset.sup_mono hST)
+  mono' _ _ _ _ hST := simplex_mono (Finset.sup_mono hST)
   isAcyclicIn' _ hS := isAcyclicIn_simplex R (sup_mem hS)
 
 /-- The carrier `s ↦ Δs` on `K`. -/
 def simplexCarrier : AcyclicCarrier R K K where
   toFun s := simplex s
-  mono' _ _ _ hst := simplex_mono hst
+  mono' _ _ _ _ hst := simplex_mono hst
   isAcyclicIn' _ hs := isAcyclicIn_simplex R hs
 
 /-- The carrier `S ↦ sd(Δ(⋃ S))` on the barycentric subdivision of `K`. -/
 def subdivisionSimplexCarrier : AcyclicCarrier R K.barycentricSubdivision K.barycentricSubdivision
     where
   toFun S := (simplex (S.sup ofColex)).barycentricSubdivision
-  mono' _ _ _ hST := barycentricSubdivision_mono (simplex_mono (Finset.sup_mono hST))
+  mono' _ _ _ _ hST := barycentricSubdivision_mono (simplex_mono (Finset.sup_mono hST))
   isAcyclicIn' _ hS :=
     (isAcyclicIn_self_barycentricSubdivision_simplex R (K.nonempty_of_mem (sup_mem hS))).of_le R
       (barycentricSubdivision_mono ((simplex_le_iff (K.nonempty_of_mem (sup_mem hS))).2
@@ -152,5 +206,14 @@ noncomputable def homologyIsoBarycentricSubdivision (n : ℕ) :
       hS.2.2⟩)
     (fun _ _ _ _ hT ↦ simplex_mono (Finset.sup_le fun x hx ↦ (mem_simplex.1 (hT.2.1 x hx)).2))
     (fun _ _ _ _ ht ↦ barycentricSubdivision_mono (simplex_mono (mem_simplex.1 ht).2)) n
+
+/-- The barycentric subdivision of an acyclic complex is acyclic. -/
+theorem isAcyclicIn_self_barycentricSubdivision (hK : IsAcyclicIn R K K) :
+    IsAcyclicIn R K.barycentricSubdivision K.barycentricSubdivision :=
+  isAcyclicIn_self_of_carriers R (toSubdivisionCarrier K R) (ofSubdivisionCarrier K R)
+    (subdivisionSimplexCarrier K R)
+    (fun _ hS ↦ ⟨hS.1, fun x hx ↦ mem_simplex.2 ⟨K.nonempty_of_mem (hS.2.1 x hx), subset_sup hx⟩,
+      hS.2.2⟩)
+    (fun _ _ _ _ ht ↦ barycentricSubdivision_mono (simplex_mono (mem_simplex.1 ht).2)) hK
 
 end PreAbstractSimplicialComplex
