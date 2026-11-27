@@ -96,6 +96,11 @@ theorem boundary_le_simplex (s : Finset ι) : boundary s ≤ simplex s :=
 /-- The top face is the one face of the simplex missing from the boundary. -/
 theorem self_notMem_boundary (s : Finset ι) : s ∉ boundary s := fun h ↦ h.2.ne rfl
 
+/-- A face of the simplex on `s` with fewer vertices than `s` lies in the boundary. -/
+theorem mem_boundary_of_card_lt {t : Finset ι} (ht : t ∈ simplex s) (hcard : t.card < s.card) :
+    t ∈ boundary s :=
+  ⟨ht.1, ssubset_of_subset_of_ne ht.2 (by rintro rfl; omega)⟩
+
 /-- If `s` is a face of `K`, then so is every face of its boundary. -/
 theorem boundary_le_of_mem (hs : s ∈ K) : boundary s ≤ K :=
   (boundary_le_simplex s).trans ((simplex_le_iff (K.nonempty_of_mem hs)).2 hs)
