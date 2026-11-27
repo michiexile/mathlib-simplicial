@@ -89,8 +89,11 @@ Files marked "Status: planned" in their header are placeholders that fix where m
    (`Homology/Acyclic.lean`). `H₀` is free on the connected components of the 1-skeleton,
    homology vanishes above the dimension, and the boundary of a simplex has the homology of a
    sphere (`Homology/Computations.lean`, using the normalized chains of `Homology/Chains.lean`).
-5. **Concrete chains and Euler–Poincaré.** The textbook oriented chain complex, its comparison
-   with the bridged one, and `χ(K) = ∑ (-1)ⁿ fₙ = ∑ (-1)ⁿ βₙ` over a field.
+5. **Concrete chains and Euler–Poincaré** (done). The normalized chains of `K.toSSet` are the
+   textbook oriented chains, one summand per face, with the alternating-sum boundary formula
+   (`Homology/Chains.lean`). `χ(K) = ∑ (-1)ⁿ fₙ = ∑ (-1)ⁿ βₙ` over any field
+   (`Homology/EulerPoincare.lean`, from a general Euler–Poincaré formula for chain complexes of
+   vector spaces in `Algebra/Homology/EulerPoincare.lean`).
 6. **First TDA layer.** Vietoris–Rips complexes, filtrations and persistence modules; then one of
    the barcode structure theorem, the nerve lemma together with the persistent nerve lemma, or
    discrete Morse collapses.

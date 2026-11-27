@@ -2,6 +2,7 @@
 -- Keep the list sorted and add every new file here.
 module
 
+public import MathlibSimplicial.Algebra.Homology.EulerPoincare
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Clique
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Cone
 public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.Dimension
