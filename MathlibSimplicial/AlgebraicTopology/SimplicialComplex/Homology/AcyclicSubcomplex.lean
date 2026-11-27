@@ -45,7 +45,7 @@ homology.
 
 @[expose] public section
 
-open CategoryTheory Limits Finset
+open CategoryTheory Limits Finset Simplicial
 
 universe u
 
@@ -137,7 +137,131 @@ theorem exists_boundary_of_le {n : ℕ}
   exact ⟨inclChains R h (n + 1) b, inclChains_mem_chainsIn R h b,
     by rw [← LinearMap.comp_apply, orientedBoundary_comp_inclChains, LinearMap.comp_apply]⟩
 
+/-- The inclusion of oriented chain complexes induced by `M ≤ L`. -/
+noncomputable def orientedInclusion : M.orientedChainComplex R ⟶ L.orientedChainComplex R where
+  f n := ModuleCat.ofHom (inclChains R h n)
+  comm' := by
+    rintro _ n rfl
+    exact ModuleCat.hom_ext (orientedBoundary_comp_inclChains R h n)
+
+theorem toSSetMap_simplexOfFace {n : ℕ} (t : M.facesOfDim n) :
+    (toSSetMap h).app _ (M.simplexOfFace t) =
+      L.simplexOfFace (Set.inclusion (facesOfDim_mono h n) t) :=
+  rfl
+
+omit h in
+theorem simplexOfFace_surjective {n : ℕ} (x : M.toSSet _⦋n⦌) (hx : x ∈ M.toSSet.nonDegenerate n) :
+    ∃ t, M.simplexOfFace t = x :=
+  ⟨M.nonDegenerateEquiv n ⟨x, hx⟩, by simp [simplexOfFace]⟩
+
+theorem normalizedChainComplexMap_f_comp_chainsXIso_hom (n : ℕ) :
+    (normalizedChainComplexMap (ModuleCat.of R R) h).f n ≫ (L.chainsXIso R n).hom =
+      (M.chainsXIso R n).hom ≫ ModuleCat.ofHom (inclChains R h n) := by
+  apply SSet.normalizedChainComplex_hom_ext
+  intro x hx
+  obtain ⟨t, rfl⟩ := simplexOfFace_surjective x hx
+  rw [← Category.assoc, SSet.ι_normalizedChainComplexMap_f]
+  change L.faceChain _ (Set.inclusion (facesOfDim_mono h n) t) ≫ _ = M.faceChain _ t ≫ _ ≫ _
+  rw [faceChain_chainsXIso_hom, reassoc_of% faceChain_chainsXIso_hom]
+  ext : 2
+  simp
+
+theorem normalizedChainComplexMap_comp_orientedIso_hom :
+    normalizedChainComplexMap (ModuleCat.of R R) h ≫ (L.orientedIso R).hom =
+      (M.orientedIso R).hom ≫ orientedInclusion R h := by
+  ext n : 1
+  exact normalizedChainComplexMap_f_comp_chainsXIso_hom R h n
+
+/-- The isomorphism between simplicial homology and oriented homology is natural for
+inclusions. -/
+theorem homologyMap_comp_homologyIsoOriented_hom (n : ℕ) :
+    PreAbstractSimplicialComplex.homologyMap (ModuleCat.of R R) h n ≫
+        (L.homologyIsoOriented R n).hom =
+      (M.homologyIsoOriented R n).hom ≫
+        HomologicalComplex.homologyMap (orientedInclusion R h) n := by
+  simp only [homologyIsoOriented, Iso.trans_hom, HomologicalComplex.homologyMapIso_hom,
+    reassoc_of% homologyMap_comp_homologyIsoNormalized_hom, Category.assoc,
+    ← HomologicalComplex.homologyMap_comp, normalizedChainComplexMap_comp_orientedIso_hom]
+
+omit [LinearOrder κ] in
+theorem inclChains_mem_chainsIn_of_mem {N : PreAbstractSimplicialComplex κ} {n : ℕ}
+    {c : M.facesOfDim n →₀ R} (hc : c ∈ chainsIn R M N n) :
+    inclChains R h n c ∈ chainsIn R L N n := by
+  have := Finsupp.lmapDomain_supported (M := R) (R := R) (Set.inclusion (facesOfDim_mono h n))
+    {t | t.1 ∈ N}
+  have hc' : inclChains R h n c ∈ (chainsIn R M N n).map (inclChains R h n) := ⟨c, hc, rfl⟩
+  unfold inclChains chainsIn at hc'
+  rw [this] at hc'
+  refine Finsupp.supported_mono ?_ hc'
+  rintro _ ⟨t, ht, rfl⟩
+  exact ht
+
 end Inclusion
+
+section Naturality
+
+variable {ι : Type u} [LinearOrder ι] {K K' : PreAbstractSimplicialComplex ι}
+  {L' : PreAbstractSimplicialComplex κ}
+
+/-- Restricting an acyclic carrier to a subcomplex. -/
+def AcyclicCarrier.restrict (Φ : AcyclicCarrier R K' L) (h : K ≤ K') : AcyclicCarrier R K L where
+  toFun := Φ.toFun
+  mono' _ _ hs ht hst := Φ.mono' (h hs) (h ht) hst
+  isAcyclicIn' _ hs := Φ.isAcyclicIn' (h hs)
+
+/-- Carried chain maps commute with inclusions up to homotopy, as long as one acyclic carrier
+contains both carriers. -/
+noncomputable def AcyclicCarrier.homotopyNaturality (Φ : AcyclicCarrier R K L)
+    (Φ' : AcyclicCarrier R K' L') (hK : K ≤ K') (hL : L ≤ L') (Θ : AcyclicCarrier R K L')
+    (hΦ : ∀ s ∈ K, Φ s ≤ Θ s) (hΦ' : ∀ s ∈ K, Φ' s ≤ Θ s) :
+    Homotopy (Φ.chainMap ≫ orientedInclusion R hL) (orientedInclusion R hK ≫ Φ'.chainMap) :=
+  Θ.homotopy
+    (fun n s ↦ chainsIn_mono R (hΦ s.1 s.2.1) n
+      (inclChains_mem_chainsIn_of_mem R hL (Φ.carries_chainMap n s)))
+    (fun n s ↦ by
+      change orientedComponent Φ'.chainMap n (inclChains R hK n (Finsupp.single s 1)) ∈ _
+      rw [inclChains_single]
+      exact chainsIn_mono R (hΦ' s.1 s.2.1) n (Φ'.carries_chainMap n _))
+    (by
+      change L'.augmentation R ∘ₗ (inclChains R hL 0 ∘ₗ orientedComponent Φ.chainMap 0) = _
+      rw [← LinearMap.comp_assoc, augmentation_comp_inclChains, Φ.augmentation_comp_chainMap])
+    (by
+      change L'.augmentation R ∘ₗ (orientedComponent Φ'.chainMap 0 ∘ₗ inclChains R hK 0) = _
+      rw [← LinearMap.comp_assoc, Φ'.augmentation_comp_chainMap, augmentation_comp_inclChains])
+
+/-- **Naturality of the homology isomorphisms given by acyclic carriers**, for inclusions
+`K ≤ K'` and `L ≤ L'`. -/
+theorem AcyclicCarrier.homologyIso_naturality {Φ : AcyclicCarrier R K L} {Ψ : AcyclicCarrier R L K}
+    {ΘK : AcyclicCarrier R K K} {ΘL : AcyclicCarrier R L L} {hK : ∀ s ∈ K, s ∈ ΘK s}
+    {hL : ∀ t ∈ L, t ∈ ΘL t} {hKc : ∀ s ∈ K, ∀ t ∈ L, t ∈ Φ s → Ψ t ≤ ΘK s}
+    {hLc : ∀ t ∈ L, ∀ s ∈ K, s ∈ Ψ t → Φ s ≤ ΘL t}
+    {Φ' : AcyclicCarrier R K' L'} {Ψ' : AcyclicCarrier R L' K'}
+    {ΘK' : AcyclicCarrier R K' K'} {ΘL' : AcyclicCarrier R L' L'} {hK' : ∀ s ∈ K', s ∈ ΘK' s}
+    {hL' : ∀ t ∈ L', t ∈ ΘL' t} {hKc' : ∀ s ∈ K', ∀ t ∈ L', t ∈ Φ' s → Ψ' t ≤ ΘK' s}
+    {hLc' : ∀ t ∈ L', ∀ s ∈ K', s ∈ Ψ' t → Φ' s ≤ ΘL' t}
+    (hKK' : K ≤ K') (hLL' : L ≤ L') (Θ : AcyclicCarrier R K L') (hΦ : ∀ s ∈ K, Φ s ≤ Θ s)
+    (hΦ' : ∀ s ∈ K, Φ' s ≤ Θ s) (n : ℕ) :
+    (AcyclicCarrier.homologyIso Φ Ψ ΘK ΘL hK hL hKc hLc n).hom ≫
+        PreAbstractSimplicialComplex.homologyMap (ModuleCat.of R R) hLL' n =
+      PreAbstractSimplicialComplex.homologyMap (ModuleCat.of R R) hKK' n ≫
+        (AcyclicCarrier.homologyIso Φ' Ψ' ΘK' ΘL' hK' hL' hKc' hLc' n).hom := by
+  have nL : (L.homologyIsoOriented R n).inv ≫
+      PreAbstractSimplicialComplex.homologyMap (ModuleCat.of R R) hLL' n =
+      HomologicalComplex.homologyMap (orientedInclusion R hLL') n ≫
+        (L'.homologyIsoOriented R n).inv := by
+    rw [Iso.inv_comp_eq, ← Category.assoc, ← homologyMap_comp_homologyIsoOriented_hom,
+      Category.assoc, Iso.hom_inv_id, Category.comp_id]
+  have hH : HomologicalComplex.homologyMap Φ.chainMap n ≫
+      HomologicalComplex.homologyMap (orientedInclusion R hLL') n =
+      HomologicalComplex.homologyMap (orientedInclusion R hKK') n ≫
+        HomologicalComplex.homologyMap Φ'.chainMap n := by
+    rw [← HomologicalComplex.homologyMap_comp, ← HomologicalComplex.homologyMap_comp,
+      (AcyclicCarrier.homotopyNaturality R Φ Φ' hKK' hLL' Θ hΦ hΦ').homologyMap_eq]
+  simp only [AcyclicCarrier.homologyIso, Iso.trans_hom, Iso.symm_hom,
+    HomotopyEquiv.toHomologyIso, AcyclicCarrier.homotopyEquiv, Category.assoc, nL,
+    reassoc_of% hH, reassoc_of% homologyMap_comp_homologyIsoOriented_hom]
+
+end Naturality
 
 /-- `M` is acyclic inside any complex containing it, as soon as it is acyclic in itself. -/
 theorem IsAcyclicIn.of_le (h : M ≤ L) (hM : IsAcyclicIn R M M) : IsAcyclicIn R L M where

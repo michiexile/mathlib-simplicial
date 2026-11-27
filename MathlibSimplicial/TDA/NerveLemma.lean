@@ -33,6 +33,17 @@ between `sd K` and `sd N`:
   `nerveCarrierN` (the chains of nerve faces above the smallest element, a cone).
 Combined with `H(sd K) ≅ H(K)` (`Homology/Subdivision.lean`) this proves the lemma.
 
+## Naturality
+
+For nested covers (`K ≤ K'`, `U i ≤ U' i`) the nerve isomorphisms commute with the maps induced
+by the inclusions `K ≤ K'` and `N(U) ≤ N(U')` (`nerveLemma_naturality`). Each of the three
+isomorphisms composing `nerveLemma` is natural: the subdivision isomorphisms by
+`homologyIsoBarycentricSubdivision_naturality`, and the carrier isomorphism by
+`AcyclicCarrier.homologyIso_naturality`, using `nerveComparisonCarrier`
+(`S ↦ chains of faces of N(U') above {i | ⋃S ∈ U i}`, a cone) to carry both composites
+`sd K → sd N(U) → sd N(U')` and `sd K → sd K' → sd N(U')`. This is the input to the persistent
+nerve lemma (`TDA/PersistentNerveLemma.lean`).
+
 The hypothesis is stated with the concrete acyclicity `IsAcyclicIn R M M`, which is equivalent
 to vanishing reduced homology (`Homology/AcyclicSubcomplex.lean`). For example it holds when
 every intersection is a cone (`isAcyclicIn_self_of_cone`).
@@ -42,6 +53,9 @@ every intersection is a cone (`isAcyclicIn_self_of_cone`).
 * `PreAbstractSimplicialComplex.coverInter`, `PreAbstractSimplicialComplex.coverNerve`,
   `PreAbstractSimplicialComplex.coverIndex`.
 * `PreAbstractSimplicialComplex.nerveLemma`.
+* `PreAbstractSimplicialComplex.coverNerve_mono`,
+  `PreAbstractSimplicialComplex.nerveComparisonCarrier`,
+  `PreAbstractSimplicialComplex.nerveLemma_naturality`.
 
 ## References
 
@@ -274,5 +288,82 @@ noncomputable def nerveLemma (n : ℕ) :
     ((coverNerve U).homologyIsoBarycentricSubdivision R n).symm
 
 end NerveLemma
+
+/-! ### Naturality: the persistent nerve lemma -/
+
+section Naturality
+
+omit [LinearOrder ι] [LinearOrder I] [Fintype I] in
+theorem coverNerve_mono {U' : I → PreAbstractSimplicialComplex ι} (hUU' : ∀ i, U i ≤ U' i) :
+    coverNerve U ≤ coverNerve U' :=
+  fun _ hJ ↦ ⟨hJ.1, hJ.2.imp fun _ hs ↦ ⟨hs.1, fun i hi ↦ hUU' i (hs.2 i hi)⟩⟩
+
+variable {U' : I → PreAbstractSimplicialComplex ι} (hUU' : ∀ i, U i ≤ U' i)
+  {K K' : PreAbstractSimplicialComplex ι} (hKK' : K ≤ K')
+  (hle : ∀ i, U i ≤ K) (hcov : ∀ s ∈ K, ∃ i, s ∈ U i)
+  (hle' : ∀ i, U' i ≤ K') (hcov' : ∀ s ∈ K', ∃ i, s ∈ U' i) (R : Type u) [Ring R]
+  (hacyc : ∀ J ∈ coverNerve U, IsAcyclicIn R (coverInter U J) (coverInter U J))
+  (hacyc' : ∀ J ∈ coverNerve U', IsAcyclicIn R (coverInter U' J) (coverInter U' J))
+
+/-- The carrier comparing the nerve carriers of two nested covers: a chain of faces of `K` goes
+to the chains of faces of the larger nerve above the index set of its largest face. -/
+noncomputable def nerveComparisonCarrier :
+    AcyclicCarrier R K.barycentricSubdivision (coverNerve U').barycentricSubdivision where
+  toFun S := (coverNerve U').barycentricSubdivisionAbove (coverIndex U (S.sup ofColex))
+  mono' _ _ hS _ hST := barycentricSubdivisionAbove_anti
+    (coverIndex_anti (K.nonempty_of_mem (sup_mem hS)) (Finset.sup_mono hST))
+  isAcyclicIn' _ hS := isAcyclicIn_barycentricSubdivisionAbove R
+    (coverNerve_mono hUU' (coverIndex_mem_coverNerve hcov (sup_mem hS)))
+
+include hUU' hKK' hcov' in
+/-- **The persistent nerve lemma**: the nerve isomorphism is natural for inclusions of covered
+complexes. If `K ≤ K'` and `U i ≤ U' i` for all `i`, the square formed by the nerve
+isomorphisms and the maps induced by `K ≤ K'` and `N(U) ≤ N(U')` commutes. -/
+theorem nerveLemma_naturality (n : ℕ) :
+    (nerveLemma hle hcov R hacyc n).hom ≫
+        PreAbstractSimplicialComplex.homologyMap (ModuleCat.of R R) (coverNerve_mono hUU') n =
+      PreAbstractSimplicialComplex.homologyMap (ModuleCat.of R R) hKK' n ≫
+        (nerveLemma hle' hcov' R hacyc' n).hom := by
+  have e2 := AcyclicCarrier.homologyIso_naturality R (barycentricSubdivision_mono hKK')
+    (barycentricSubdivision_mono (coverNerve_mono hUU'))
+    (Φ := toNerveCarrier hcov R) (Ψ := ofNerveCarrier hle R hacyc)
+    (ΘK := nerveCarrierK hle hcov R hacyc) (ΘL := nerveCarrierN U R)
+    (hK := fun _ hS ↦ mem_nerveCarrierK hle hcov R hacyc hS)
+    (hL := fun _ hD ↦ mem_nerveCarrierN R hD)
+    (hKc := fun _ hS _ _ hDS ↦ ofNerveCarrier_le_nerveCarrierK hle hcov R hacyc hS hDS)
+    (hLc := fun _ hD _ hS hSD ↦ toNerveCarrier_le_nerveCarrierN hle hcov R hacyc hD hS hSD)
+    (Φ' := toNerveCarrier hcov' R) (Ψ' := ofNerveCarrier hle' R hacyc')
+    (ΘK' := nerveCarrierK hle' hcov' R hacyc') (ΘL' := nerveCarrierN U' R)
+    (hK' := fun _ hS ↦ mem_nerveCarrierK hle' hcov' R hacyc' hS)
+    (hL' := fun _ hD ↦ mem_nerveCarrierN R hD)
+    (hKc' := fun _ hS _ _ hDS ↦ ofNerveCarrier_le_nerveCarrierK hle' hcov' R hacyc' hS hDS)
+    (hLc' := fun _ hD _ hS hSD ↦ toNerveCarrier_le_nerveCarrierN hle' hcov' R hacyc' hD hS hSD)
+    (nerveComparisonCarrier hUU' hcov R) (fun S hS T hT ↦ ?_) (fun S hS T hT ↦ ?_) n
+  · have e1 := homologyIsoBarycentricSubdivision_naturality R hKK' n
+    have e3 := homologyIsoBarycentricSubdivision_naturality R (coverNerve_mono hUU') n
+    have e3' : ((coverNerve U).homologyIsoBarycentricSubdivision R n).inv ≫
+        PreAbstractSimplicialComplex.homologyMap (ModuleCat.of R R) (coverNerve_mono hUU') n =
+        PreAbstractSimplicialComplex.homologyMap (ModuleCat.of R R)
+          (barycentricSubdivision_mono (coverNerve_mono hUU')) n ≫
+          ((coverNerve U').homologyIsoBarycentricSubdivision R n).inv := by
+      rw [Iso.inv_comp_eq, reassoc_of% e3, Iso.hom_inv_id, Category.comp_id]
+    simp only [nerveLemma, Iso.trans_hom, Iso.symm_hom, Category.assoc]
+    rw [e3', reassoc_of% e2, reassoc_of% e1]
+  · obtain ⟨hTne, hTsub⟩ := mem_simplex.1 hT
+    refine ⟨barycentricSubdivision_mono (coverNerve_mono hUU')
+      ((coverNerve U).barycentricSubdivision.mem_of_subset (nerveChain_mem hcov hS) hTsub hTne),
+      fun y hy ↦ ?_⟩
+    obtain ⟨x, hx, rfl⟩ := Finset.mem_image.1 (hTsub hy)
+    rw [ofColex_toColex]
+    exact coverIndex_anti (K.nonempty_of_mem (hS.2.1 x hx)) (subset_sup hx)
+  · obtain ⟨hTne, hTsub⟩ := mem_simplex.1 hT
+    refine ⟨(coverNerve U').barycentricSubdivision.mem_of_subset
+      (nerveChain_mem hcov' (barycentricSubdivision_mono hKK' hS)) hTsub hTne, fun y hy ↦ ?_⟩
+    obtain ⟨x, hx, rfl⟩ := Finset.mem_image.1 (hTsub hy)
+    rw [ofColex_toColex]
+    exact fun i hi ↦ mem_coverIndex.2 (hUU' i (mem_coverIndex.1
+      (coverIndex_anti (K.nonempty_of_mem (hS.2.1 x hx)) (subset_sup hx) hi)))
+
+end Naturality
 
 end PreAbstractSimplicialComplex

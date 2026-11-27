@@ -26,5 +26,6 @@ public import MathlibSimplicial.AlgebraicTopology.SimplicialComplex.ToSSet
 public import MathlibSimplicial.AlgebraicTopology.SimplicialSet.Homology.ExtraDegeneracy
 public import MathlibSimplicial.TDA.NerveLemma
 public import MathlibSimplicial.TDA.Persistence
+public import MathlibSimplicial.TDA.PersistentNerveLemma
 public import MathlibSimplicial.TDA.VietorisRips
 

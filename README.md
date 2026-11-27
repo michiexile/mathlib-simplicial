@@ -66,7 +66,8 @@ MathlibSimplicial/
   TDA/
     VietorisRips.lean    Vietoris–Rips and Čech complexes
     Persistence.lean     filtrations, persistence modules, persistent homology
-    NerveLemma.lean      nerve lemma and persistent nerve lemma
+    NerveLemma.lean      nerve lemma and its naturality
+    PersistentNerveLemma.lean  persistent nerve lemma for filtered covers
 ```
 
 Files marked "Status: planned" in their header are placeholders that fix where material will go.
@@ -102,8 +103,9 @@ Files marked "Status: planned" in their header are placeholders that fix where m
    theorem (`Homology/AcyclicCarrier.lean`), giving acyclicity of cones with any apex
    (`Homology/AcyclicSubcomplex.lean`). Barycentric subdivision preserves homology
    (`Homology/Subdivision.lean`), and the **nerve lemma** for finite covers by subcomplexes with
-   acyclic intersections (`TDA/NerveLemma.lean`). Next: the persistent nerve lemma; later the
-   barcode structure theorem or discrete Morse collapses.
+   acyclic intersections (`TDA/NerveLemma.lean`), together with the **persistent nerve lemma**
+   for filtered covers (`TDA/PersistentNerveLemma.lean`). Next: the barcode structure theorem
+   or discrete Morse collapses.
 
 Topological combinatorics (Sperner, Tucker, Kneser) is on hold for now.
 

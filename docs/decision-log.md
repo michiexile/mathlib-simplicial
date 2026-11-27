@@ -256,3 +256,23 @@ review after the fact. To reverse one, say so and it will be redone.
   `exists_boundary_of_isZero_homology`, degree 0 via connectivity) and can be added when needed.
 - The conclusion is an isomorphism of homology for each degree. The chain-level statement (a
   chain homotopy equivalence) is also available through `AcyclicCarrier.homotopyEquiv`.
+
+### Step 6d: the persistent nerve lemma (Claude)
+- Branch `claude/step6-persistent-nerve`, stacked on step 6c.
+- **Route: naturality of each piece, then `NatIso.ofComponents`.** Proved, in order:
+  naturality of the oriented-chain comparison for inclusions; naturality of the acyclic
+  carrier isomorphism (`AcyclicCarrier.homologyIso_naturality`: if a carrier `Θ : K → L'`
+  carries both `Φ` followed by `L ≤ L'` and `K ≤ K'` followed by `Φ'`, the square commutes,
+  because both composites are chain maps carried by `Θ` and hence homotopic); naturality of
+  subdivision invariance; `nerveLemma_naturality`; finally `persistentNerveLemma` in
+  `TDA/PersistentNerveLemma.lean`.
+  - **Alternative:** build the nerve isomorphism as a functor from a category of covered
+    complexes. More general, but heavier and not needed for persistence.
+- **Comparison carrier** for nested covers: `S ↦ (N(U')).barycentricSubdivisionAbove
+  {i | ⋃S ∈ U i}`. It is a cone (acyclic), and contains both the image chain built from `U`
+  and the one built from `U'`, since `{i | s ∈ U i} ⊆ {i | s ∈ U' i}`.
+- **Filtered covers** are `U : T →o (I → PreAbstractSimplicialComplex ι)` (monotone in the
+  pointwise order) with `U t i ≤ F t`, covering at each `t`, and acyclic intersections at each
+  `t`. The index type `I` is fixed across the filtration; covers that grow new elements can be
+  modelled by empty subcomplexes, which do not appear in the nerve.
+
