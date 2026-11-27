@@ -100,9 +100,10 @@ Files marked "Status: planned" in their header are placeholders that fix where m
    interleavings, including the Čech–Rips interleaving (`TDA/Persistence.lean`). Oriented
    chains as finitely supported functions (`Homology/Oriented.lean`) and the acyclic carrier
    theorem (`Homology/AcyclicCarrier.lean`), giving acyclicity of cones with any apex
-   (`Homology/AcyclicSubcomplex.lean`). Next: barycentric subdivision and the nerve lemma
-   together with the persistent nerve lemma; later the barcode structure theorem or discrete
-   Morse collapses.
+   (`Homology/AcyclicSubcomplex.lean`). Barycentric subdivision preserves homology
+   (`Homology/Subdivision.lean`), and the **nerve lemma** for finite covers by subcomplexes with
+   acyclic intersections (`TDA/NerveLemma.lean`). Next: the persistent nerve lemma; later the
+   barcode structure theorem or discrete Morse collapses.
 
 Topological combinatorics (Sperner, Tucker, Kneser) is on hold for now.
 

@@ -136,7 +136,7 @@ variable (K : PreAbstractSimplicialComplex ι) (L : PreAbstractSimplicialComplex
 structure AcyclicCarrier where
   /-- The subcomplex of `L` carrying the face `s`. -/
   toFun : Finset ι → PreAbstractSimplicialComplex κ
-  mono' ⦃s t : Finset ι⦄ : t ∈ K → s ⊆ t → toFun s ≤ toFun t
+  mono' ⦃s t : Finset ι⦄ : s ∈ K → t ∈ K → s ⊆ t → toFun s ≤ toFun t
   isAcyclicIn' ⦃s : Finset ι⦄ : s ∈ K → IsAcyclicIn R L (toFun s)
 
 variable {R K L} in
@@ -160,7 +160,8 @@ instance : CoeFun (AcyclicCarrier R K L) fun _ ↦ Finset ι → PreAbstractSimp
   ⟨toFun⟩
 
 omit [LinearOrder ι] in
-theorem mono {s t : Finset ι} (ht : t ∈ K) (hst : s ⊆ t) : Φ s ≤ Φ t := Φ.mono' ht hst
+theorem mono {s t : Finset ι} (hs : s ∈ K) (ht : t ∈ K) (hst : s ⊆ t) : Φ s ≤ Φ t :=
+  Φ.mono' hs ht hst
 
 omit [LinearOrder ι] in
 theorem isAcyclicIn {s : Finset ι} (hs : s ∈ K) : IsAcyclicIn R L (Φ s) := Φ.isAcyclicIn' hs
@@ -178,7 +179,7 @@ theorem Carries.comp_orientedBoundary {n m : ℕ}
   refine Submodule.sum_mem _ fun i _ ↦ ?_
   rw [map_zsmul]
   exact Submodule.smul_of_tower_mem _ _
-    (chainsIn_mono R (Φ.mono s.2.1 (erase_subset _ _)) m (hf (faceErase s i)))
+    (chainsIn_mono R (Φ.mono (faceErase s i).2.1 s.2.1 (erase_subset _ _)) m (hf (faceErase s i)))
 
 omit [LinearOrder ι] in
 variable {Φ} in
@@ -364,6 +365,62 @@ noncomputable def homotopy : Homotopy f g :=
         eqToHom (congrArg (L.orientedChainComplex R).X (r : i + 1 = j))))
 
 end Homotopy
+
+section Comp
+
+variable {M : Type u} [LinearOrder M] {K' : PreAbstractSimplicialComplex M}
+
+omit [LinearOrder ι] in
+variable {Φ} in
+/-- A composite of carried maps is carried by any carrier that contains the carriers of the
+second map on the carriers of the first. -/
+theorem Carries.comp {Ψ : AcyclicCarrier R L K'} {Θ : AcyclicCarrier R K K'} {n m p : ℕ}
+    {f : (K.facesOfDim n →₀ R) →ₗ[R] (L.facesOfDim m →₀ R)}
+    {g : (L.facesOfDim m →₀ R) →ₗ[R] (K'.facesOfDim p →₀ R)} (hf : Φ.Carries f)
+    (hg : Ψ.Carries g) (h : ∀ s ∈ K, ∀ t ∈ L, t ∈ Φ s → Ψ t ≤ Θ s) : Θ.Carries (g ∘ₗ f) :=
+  fun s ↦ hg.apply_mem fun t ht ↦ h s.1 s.2.1 t.1 t.2.1 (hf s ht)
+
+/-- The identity is carried by any carrier `Θ` with `s ∈ Θ s`. -/
+theorem carries_id {Θ : AcyclicCarrier R K K} (h : ∀ s ∈ K, s ∈ Θ s) (n : ℕ) :
+    Θ.Carries (orientedComponent (𝟙 (K.orientedChainComplex R)) n) :=
+  fun s ↦ single_mem_chainsIn R (h s.1 s.2.1) 1
+
+end Comp
+
+/-- **Acyclic carriers give chain homotopy equivalences.** Given carriers `Φ : K → L` and
+`Ψ : L → K`, and acyclic carriers `ΘK` on `K` and `ΘL` on `L` that carry both the identity and
+the composites, the oriented chain complexes of `K` and `L` are chain homotopy equivalent. -/
+noncomputable def homotopyEquiv (Φ : AcyclicCarrier R K L) (Ψ : AcyclicCarrier R L K)
+    (ΘK : AcyclicCarrier R K K) (ΘL : AcyclicCarrier R L L) (hK : ∀ s ∈ K, s ∈ ΘK s)
+    (hL : ∀ t ∈ L, t ∈ ΘL t) (hKc : ∀ s ∈ K, ∀ t ∈ L, t ∈ Φ s → Ψ t ≤ ΘK s)
+    (hLc : ∀ t ∈ L, ∀ s ∈ K, s ∈ Ψ t → Φ s ≤ ΘL t) :
+    HomotopyEquiv (K.orientedChainComplex R) (L.orientedChainComplex R) where
+  hom := Φ.chainMap
+  inv := Ψ.chainMap
+  homotopyHomInvId := ΘK.homotopy (f := Φ.chainMap ≫ Ψ.chainMap) (g := 𝟙 _)
+    (fun n ↦ (Φ.carries_chainMap n).comp (Ψ.carries_chainMap n) hKc) (carries_id hK)
+    (by
+      change K.augmentation R ∘ₗ (orientedComponent Ψ.chainMap 0 ∘ₗ
+        orientedComponent Φ.chainMap 0) = _
+      rw [← LinearMap.comp_assoc, Ψ.augmentation_comp_chainMap, Φ.augmentation_comp_chainMap])
+    (LinearMap.comp_id _)
+  homotopyInvHomId := ΘL.homotopy (f := Ψ.chainMap ≫ Φ.chainMap) (g := 𝟙 _)
+    (fun n ↦ (Ψ.carries_chainMap n).comp (Φ.carries_chainMap n) hLc) (carries_id hL)
+    (by
+      change L.augmentation R ∘ₗ (orientedComponent Φ.chainMap 0 ∘ₗ
+        orientedComponent Ψ.chainMap 0) = _
+      rw [← LinearMap.comp_assoc, Φ.augmentation_comp_chainMap, Ψ.augmentation_comp_chainMap])
+    (LinearMap.comp_id _)
+
+/-- Acyclic carriers in both directions, whose composites are carried by acyclic carriers
+containing the identity, give isomorphic simplicial homology. -/
+noncomputable def homologyIso (Φ : AcyclicCarrier R K L) (Ψ : AcyclicCarrier R L K)
+    (ΘK : AcyclicCarrier R K K) (ΘL : AcyclicCarrier R L L) (hK : ∀ s ∈ K, s ∈ ΘK s)
+    (hL : ∀ t ∈ L, t ∈ ΘL t) (hKc : ∀ s ∈ K, ∀ t ∈ L, t ∈ Φ s → Ψ t ≤ ΘK s)
+    (hLc : ∀ t ∈ L, ∀ s ∈ K, s ∈ Ψ t → Φ s ≤ ΘL t) (n : ℕ) :
+    K.homology (ModuleCat.of R R) n ≅ L.homology (ModuleCat.of R R) n :=
+  K.homologyIsoOriented R n ≪≫
+    (homotopyEquiv Φ Ψ ΘK ΘL hK hL hKc hLc).toHomologyIso n ≪≫ (L.homologyIsoOriented R n).symm
 
 end AcyclicCarrier
 

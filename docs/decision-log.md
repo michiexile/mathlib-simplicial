@@ -228,3 +228,31 @@ review after the fact. To reverse one, say so and it will be redone.
   identity and the collapse to the apex. Only full simplices use the older, order-dependent
   extra-degeneracy result. This supersedes the "apex must be minimal" limitation for
   coefficients in `ModuleCat R`.
+
+### Step 6c: barycentric subdivision and the nerve lemma (Claude)
+- Branch `claude/step6-nerve-lemma`, stacked on step 6b.
+- **Proof route: acyclic carriers between barycentric subdivisions** (Björner's proof).
+  - **Alternatives:** Mayer–Vietoris induction on the number of cover elements (needs a natural
+    comparison map with the nerve, which does not exist at chain level without subdivision); a
+    double complex / spectral sequence argument (no usable infrastructure in Mathlib).
+  - **Why:** `s ↦ {i | s ∈ U i}` reverses inclusions but preserves chains, so it becomes
+    carrier-compatible after subdividing. Everything reduces to the acyclic carrier theorem,
+    already in place.
+- **Vertex type of `sd K` is `Colex (Finset ι)`**, not the face poset. Homology needs a linear
+  order on vertices; colex is a linear order extending inclusion, so "largest/smallest element
+  of a chain" can be taken with `max'`/`min'`. The existing order-theoretic `subdivision`
+  (order complex of the face poset) is kept; relating the two is routine if ever needed.
+- A `DecidableEq` instance diamond on `Colex (Finset ι)` (from `LinearOrder` vs. found by
+  instance search, not reducibly equal) broke `Finset.mem_insert`. Worked around with
+  `Finset.mem_insert_of_decidableEq`, which takes the instance by unification. Worth reporting
+  upstream if it persists.
+- **Carrier monotonicity now quantifies only over faces** (`s ∈ K → t ∈ K → s ⊆ t → …`).
+  Previously any `s ⊆ t` was allowed, which failed for carriers that are only sensible on
+  nonempty sets (like `S ↦ sd(⋂_{i : ⋃S ∈ U i} U i)`).
+- **Hypotheses of the nerve lemma:** finite index type (`Fintype I`, so that
+  `{i | s ∈ U i}` is a `Finset`), linear orders on `ι` and `I`, coefficients in a ring, and
+  concrete acyclicity `IsAcyclicIn R (⋂_J U) (⋂_J U)` of nonempty intersections. A version
+  with homological hypotheses is a thin wrapper (positive degrees via
+  `exists_boundary_of_isZero_homology`, degree 0 via connectivity) and can be added when needed.
+- The conclusion is an isomorphism of homology for each degree. The chain-level statement (a
+  chain homotopy equivalence) is also available through `AcyclicCarrier.homotopyEquiv`.
