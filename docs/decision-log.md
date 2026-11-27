@@ -174,3 +174,27 @@ review after the fact. To reverse one, say so and it will be redone.
   upstream or to replace with Mathlib's once it lands.
 - `betti K k n := finrank k (Hₙ(K; ModuleCat.of k k))`. `k` must live in the same universe as
   the vertex type, since `ModuleCat.{u} k` needs `u`-small coproducts.
+
+### Step 6a: Vietoris–Rips, Čech, filtrations and persistence (Claude)
+- Branch `claude/step6-rips-persistence`, stacked on step 5.
+- **Point clouds are families `p : ι → M` in a pseudometric space**, not subsets of `M`.
+  - **Alternative:** complexes on a `Finset M` or `Set M`.
+  - **Why:** indexing by `ι` allows repeated points and lets `ι` carry the vertex order that
+    homology needs (`LinearOrder ι`), independently of `M`.
+- **Closed balls (`≤ r`)** throughout. Open-ball conventions differ only at bar endpoints.
+- **Rips is the clique complex of the `r`-graph**, so flagness comes for free from step 2.
+- `VR(r) ⊆ Čech(r)` needs `0 ≤ r` (for `r < 0` Rips still has vertices, Čech is empty), so the
+  filtrations are indexed by `ℝ≥0`.
+- **Filtrations are `T →o PreAbstractSimplicialComplex ι`** for any preorder `T`; persistent
+  homology is `F.monotone.functor ⋙ homologyFunctor ι R n`, a functor `T ⥤ C`.
+  - **Alternative:** a bespoke `PersistenceModule` structure (vector spaces plus maps).
+  - **Why:** a functor from the poset is the standard categorical definition, it comes with
+    functoriality for free, and it works for any coefficient category.
+- **Interleavings** are along two monotone maps `α β : T →o T` with `t ≤ α t`, `t ≤ β t`, not
+  only shifts by `ε`. This covers the multiplicative Čech–Rips interleaving (`r ↦ 2r`), which an
+  additive `ε`-interleaving cannot express on `ℝ≥0`. Interleaved filtrations give interleaved
+  persistent homology (`Interleaving.ofLE`).
+- **Upstreaming note:** `Interleaving` and `doubling` live in the `PreAbstractSimplicialComplex`
+  namespace for now, although interleavings make sense for any persistence modules. They should
+  move to a general namespace when upstreamed, once Mathlib has persistence modules.
+- Not done here: the interleaving distance and stability; the barcode decomposition.
