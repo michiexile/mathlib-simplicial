@@ -11,6 +11,8 @@ Conventions for working in this repository. See `README.md` for the roadmap and 
   hold: don't start it unless Mikael reopens it.
 - Chains **and** cochains are both first-class, each with a bridge to Mathlib's `SSet` side.
 - Build here first; upstream to Mathlib later. Don't open Mathlib PRs unless asked.
+- Work autonomously through the roadmap; don't wait for PR reviews. Record every major decision
+  (choice, alternatives, rationale) and step in `docs/decision-log.md` instead of asking.
 - Mikael is learning Lean through this project: explain Lean and Mathlib idioms in PR
   descriptions and reports, and keep module docstrings explanatory.
 
