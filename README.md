@@ -94,8 +94,11 @@ Files marked "Status: planned" in their header are placeholders that fix where m
    (`Homology/Chains.lean`). `χ(K) = ∑ (-1)ⁿ fₙ = ∑ (-1)ⁿ βₙ` over any field
    (`Homology/EulerPoincare.lean`, from a general Euler–Poincaré formula for chain complexes of
    vector spaces in `Algebra/Homology/EulerPoincare.lean`).
-6. **First TDA layer.** Vietoris–Rips complexes, filtrations and persistence modules; then one of
-   the barcode structure theorem, the nerve lemma together with the persistent nerve lemma, or
+6. **First TDA layer** (in progress). Vietoris–Rips and Čech complexes with
+   `VR(r) ⊆ Čech(r) ⊆ VR(2r)` (`TDA/VietorisRips.lean`); filtrations, sublevel filtrations,
+   persistent homology as a persistence module `T ⥤ C`, persistent Betti numbers, and
+   interleavings, including the Čech–Rips interleaving (`TDA/Persistence.lean`). Next: the nerve
+   lemma together with the persistent nerve lemma; later the barcode structure theorem or
    discrete Morse collapses.
 
 Topological combinatorics (Sperner, Tucker, Kneser) is on hold for now.
