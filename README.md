@@ -11,7 +11,8 @@ This project builds the complex-level API, a bridge to simplicial sets for both 
 cochains, and the TDA constructions that sit on top. Everything is written in Mathlib style so that
 pieces can be upstreamed later.
 
-The background survey and the decisions behind this plan are in the
+Design decisions are logged in [`docs/decision-log.md`](docs/decision-log.md). The background
+survey and the decisions behind this plan are in the
 [survey document](https://claude.ai/artifact/4zmE4hL3nF7RpERR28uKK4).
 
 ## Building
